@@ -363,6 +363,34 @@ class evol(s.with_sampleable_methods):
     #end omega_l_z
         
     #---------------------------------------------------------------------------
+    @s.call_as_array
+    def angular_size(self, z, diameter):
+        """
+        @brief computes the angular size of an object of input diameter 
+               and at redshift z
+        @param z: the redshift to compute diameter at (float)
+        @param diameter: the physical diameter of the object in Mpc (float)
+
+        @return size: angular size in degrees
+        """
+        return diameter / self.Da(z) * 180./numpy.pi
+    #end angular_size
+    
+    #---------------------------------------------------------------------------
+    @s.call_as_array
+    def physical_size(self, z, ang_size):
+        """
+        @brief computes the physical size corresponding to an angular size 
+               at redshift z
+        @param z: the redshift to compute sizes at (float)
+        @param angSize: the angular size, in degrees (float)
+
+        @return size: physical size in Mpc
+        """
+        return ang_size*numpy.pi/180.*self.Da(z)
+    #end physical_size
+    
+    #---------------------------------------------------------------------------
     @s.call_item_by_item
     def dump(self, z=None):
         print '-----------------------------'
