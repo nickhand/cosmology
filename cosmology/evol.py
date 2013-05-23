@@ -10,6 +10,7 @@ import numpy
 from scipy import integrate
 
 from cosmology import cosmo, parameters
+import utils.decorators as d
 import utils.samplinator as s
 import utils.physical_constants as pc
 
@@ -86,7 +87,7 @@ class evol(s.with_sampleable_methods):
     #end update_cosmo
         
     #---------------------------------------------------------------------------
-    @s.call_item_by_item
+    @d.call_item_by_item
     def __E(self, z):
         """
         @brief the unitless Hubble expansion rate at redshift z, 
@@ -102,7 +103,7 @@ class evol(s.with_sampleable_methods):
     #end __E
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def H(self, z):
         """
         @brief the value of the Hubble constant at redshift z in km/s/Mpc
@@ -111,7 +112,7 @@ class evol(s.with_sampleable_methods):
     #end H
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def w(self,z):
         """
         @brief equation of state: w(z) = w0 + w1*z
@@ -120,7 +121,7 @@ class evol(s.with_sampleable_methods):
     #end w
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def a(self, z):
         """
         @brief scale factor at redshift z
@@ -129,7 +130,7 @@ class evol(s.with_sampleable_methods):
     #end a
     
     #---------------------------------------------------------------------------
-    @s.call_item_by_item
+    @d.call_item_by_item
     def lookback_time(self, z):
         """
         @brief lookback time, defined as the difference between the age 
@@ -141,7 +142,7 @@ class evol(s.with_sampleable_methods):
     #end Tl
     
     #---------------------------------------------------------------------------
-    @s.call_item_by_item
+    @d.call_item_by_item
     def age(self, z):
         """
         @brief the age of the universe at redshift z in Gyr.
@@ -152,7 +153,7 @@ class evol(s.with_sampleable_methods):
     #end age
     
     #---------------------------------------------------------------------------
-    @s.call_item_by_item
+    @d.call_item_by_item
     def Dc(self, z):
         """
         @brief line of sight comoving distance in Mpc (eqn 15 from Hogg 1999).
@@ -167,7 +168,7 @@ class evol(s.with_sampleable_methods):
     #end Dc
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def Dp(self, z):
         """
         @brief proper or physical distance
@@ -176,7 +177,7 @@ class evol(s.with_sampleable_methods):
     #end Dp
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def Dm(self, z):
         """
         @brief transverse comoving distance in Mpc (eqn 16 from Hogg 1999).
@@ -186,14 +187,14 @@ class evol(s.with_sampleable_methods):
         sOk = numpy.sqrt(numpy.abs(cosmo.omega_k_0))
         if cosmo.omega_k_0 < 0.0:
             return cosmo.Dh * numpy.sin(sOk * self.Dc(z)/cosmo.Dh ) / sOk
-        elif self.Ok == 0.0:
+        elif cosmo.omega_k_0 == 0.0:
             return self.Dc(z)
         else:
             return cosmo.Dh * numpy.sinh(sOk * self.Dc(z)/cosmo.Dh ) / sOk
     #end Dm
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def Da(self, z):
         """
         @brief angular diameter distance in Mpc (eqn 18 from Hogg 1999).
@@ -226,7 +227,7 @@ class evol(s.with_sampleable_methods):
     #end Da12
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def Dl(self, z):
         """
         @brief luminosity distance in Mpc (eqn 21 of Hogg 1999)
@@ -235,7 +236,7 @@ class evol(s.with_sampleable_methods):
     #end Dl
     
     #---------------------------------------------------------------------------
-    @s.call_item_by_item
+    @d.call_item_by_item
     def D_hor(self, z):
         """
         @brief horizon distance at redshift z in Mpc (eqn)
@@ -247,7 +248,7 @@ class evol(s.with_sampleable_methods):
     #end D_hor
 
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def mu(self, z):
         """
         @brief the distance Modulus
@@ -256,7 +257,7 @@ class evol(s.with_sampleable_methods):
     #end mu
 
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def dVc(self, z):
         """
         @brief the differential comoving volume element dV_c/dz/dSolidAngle.
@@ -269,7 +270,7 @@ class evol(s.with_sampleable_methods):
     #end dVc
     
     #----------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def Vc(self, z):
         """
         @brief the comoving volume out to redshift z in Mpc^3. 
@@ -292,7 +293,7 @@ class evol(s.with_sampleable_methods):
     #end Vc
 
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def rho_crit(self,z=0):
         """
         @brief calculate the critical (mass) density at z
@@ -304,7 +305,7 @@ class evol(s.with_sampleable_methods):
     #end rho_crit
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def rho_mean(self, z=0):
         """
         @brief calculate the mean density of the universe, at redshift z.
@@ -314,7 +315,7 @@ class evol(s.with_sampleable_methods):
     #end rho_mean
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def e_crit(self,z=0):
         """
         @brief calculate the critical (energy) density at z
@@ -326,7 +327,7 @@ class evol(s.with_sampleable_methods):
     #end e_crit
                
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def lens_kernel(self,z, z_source):
         """
         @brief returns the value of the lens kernel at a redshift z, given a
@@ -342,7 +343,7 @@ class evol(s.with_sampleable_methods):
     #end lens_kernel
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def omega_m_z(self, z):
         """
         @brief matter density omega_m as a function of redshift
@@ -354,7 +355,7 @@ class evol(s.with_sampleable_methods):
     #end omega_m_z
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def omega_l_z(self, z):
         """
         @brief vacuum energy density omega_l as a function of redshift
@@ -363,7 +364,7 @@ class evol(s.with_sampleable_methods):
     #end omega_l_z
         
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def angular_size(self, z, diameter):
         """
         @brief computes the angular size of an object of input diameter 
@@ -377,7 +378,7 @@ class evol(s.with_sampleable_methods):
     #end angular_size
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def physical_size(self, z, ang_size):
         """
         @brief computes the physical size corresponding to an angular size 
@@ -391,7 +392,7 @@ class evol(s.with_sampleable_methods):
     #end physical_size
     
     #---------------------------------------------------------------------------
-    @s.call_item_by_item
+    @d.call_item_by_item
     def dump(self, z=None):
         print '-----------------------------'
         print "Cosmology: "

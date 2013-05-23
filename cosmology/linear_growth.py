@@ -10,7 +10,7 @@ import numpy
 from scipy import integrate
 
 from . import cosmo, evol, tf_eh
-import utils.samplinator as s
+import utils.decorators as d
 import utils.physical_constants as pc
 
 class linear_growth(evol.evol):
@@ -49,7 +49,7 @@ class linear_growth(evol.evol):
     #end __init__
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def growth_factor(self, z, integrate=False):
         """
         @brief the linear growth factor. If integrate = False, use approximation
@@ -70,7 +70,7 @@ class linear_growth(evol.evol):
     #end growth_factor
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def __growth_factor_integrate(self, z):
         """
         @brief solves the ODE for the linear growth of matter overdensity:
@@ -159,7 +159,7 @@ class linear_growth(evol.evol):
     #end T_BBKS   
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def P_k(self, k, z):
         """
         @brief uses the specified transfer function to define an approximation 
@@ -210,7 +210,7 @@ class linear_growth(evol.evol):
     #end __compute_P0
     
     #---------------------------------------------------------------------------
-    @s.call_item_by_item
+    @d.call_item_by_item
     def __sigma_r_integral(self, r, k, Pk):
         """
         @brief internal module to compute sigma_r integral
@@ -237,7 +237,7 @@ class linear_growth(evol.evol):
     #end compute_sigma
     
     #---------------------------------------------------------------------------    
-    @s.call_item_by_item
+    @d.call_item_by_item
     def __xi_r_integral(self, r, k, Pk):
         """
         @brief internal function to compute the correlation function integral
@@ -276,7 +276,7 @@ class linear_growth(evol.evol):
     #end Xi_r
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def mass_to_radius(self, mass, z):
         """
         @brief convenience function to convert a mass in M_sun to the 
@@ -290,7 +290,7 @@ class linear_growth(evol.evol):
     #end mass_to_radius
     
     #---------------------------------------------------------------------------
-    @s.call_as_array
+    @d.call_as_array
     def radius_to_mass(self, R, z):
         """
         @brief convenience function to convert a radius in Mpc to the mass in 
