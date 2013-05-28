@@ -9,25 +9,38 @@
 import numpy
 from scipy import integrate
 
-from . import cosmo, evol, tf_eh
+from cosmology import cosmo, core, tf_eh, parameters
 import utils.decorators as d
 import utils.physical_constants as pc
 
-class linear_growth(evol.evol):
+class linear_growth(core.cosmology):
     """
-    @brief used to compute quantities from linear perturbation theory and 
-    linear power spectrum analysis. Defaults are the Planck 2013 data
+    A class used to compute quantities from linear perturbation theory and 
+    linear power spectrum analysis. 
+    
+    Notes
+    -----
+    Default cosmology is the Planck 2013 parameter set.
     """
-    def __init__(self, tf='EH_full', **kwargs):
+    def __init__(self, tf='EH_full', cosmo_dict=None):
         """
-        @brief the available transfer functions are: 
+        The available transfer functions are: 
             'BBKS' : approximation from Bardeen et al. 1986
             'EH_full' : full CDM + baryon with wiggles TF from EH 1998
             'EH_no_wiggles' : full CDM + baryon w/o wiggles from EH 1998
             'EH_no_baryons' :  CDM TF from EH 1998
         """
-        # update the cosmological parameters
-        self.update_cosmo(**kwargs)
+        # set up the cosmo dict
+        if cosmo_dict is None: 
+            print("Warning: No default cosmology has been specified, "
+                          "using Planck 2013 parameters.")
+            cosmo.unify(parameters.Planck13())
+        else:
+            cosmo.update(cosmo_dict)
+            
+        # verify and set params
+        self._verify_params()
+        self._set_extras()
         
         # setup the TF
         if tf == 'BBKS':

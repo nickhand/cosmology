@@ -1,9 +1,10 @@
-__all__ = ['evol', 'linear_growth', 'nonlinear_power', 'halo_model', 'cosmo', 'shear_power']
+__all__ = ['cosmology', 'linear_growth', 'nonlinear_power', 'halo_model', 'cosmo']
 
-import parameters
-cosmo = parameters.planck_wp_highL_BAO_2013()
+from utils.param_dict import param_dict
+cosmo = param_dict()
 
+from core import cosmology
 from halofit import nonlinear_power
 from halo_model import halo_model
 from linear_growth import linear_growth
-from evol import evol
+

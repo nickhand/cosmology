@@ -9,17 +9,34 @@ edited by Nick Hand, 05/03/2013
 """
 import numpy
 from scipy import special
-from . import cosmo, evol
+from cosmology import cosmo, core, parameters
 
-class nonlinear_power(evol.evol):
+class nonlinear_power(core.cosmology):
     """
-    @brief this class implements the power spectrum from Smith 2003.
+    This class implements the power spectrum from Smith 2003.
     This is a direct adaptation from fortran of the halofit code
-    that was made available with the paper. Default cosmo is Planck 2013.
+    that was made available with the paper.
+    
+    Notes
+    -----
+    Default cosmology is the Planck 2013 parameter set.
     """
-    def __init__(self, z, gams=0.21, **kwargs):
+    def __init__(self, z, gams=0.21, cosmo_dict=None):
         
         self.z_ = z
+        
+        # set up the cosmo dict
+        if cosmo_dict is None: 
+            print("Warning: No default cosmology has been specified, "
+                          "using Planck 2013 parameters.")
+            cosmo.unify(parameters.Planck13())
+        else:
+            cosmo.update(cosmo_dict)
+            
+        # verify and set params
+        self._verify_params()
+        self._set_extras()
+        
         cosmo.gams = gams
         self.update_cosmo()
 
@@ -34,7 +51,7 @@ class nonlinear_power(evol.evol):
     
     def update_cosmo(self, **kwargs):
         """
-        @brief update the cosmological parameters
+        Update the cosmological parameters
         """
         # update the cosmo dictionary
         for k, v in kwargs.iteritems(): cosmo[k] = v
@@ -50,7 +67,7 @@ class nonlinear_power(evol.evol):
     #---------------------------------------------------------------------------    
     def calc_spectral_params_(self):
         """
-        @brief set the redshift of the power spectrum, and compute the
+        Set the redshift of the power spectrum, and compute the
         associated spectral parameters
         """
         self.om_m = self.omega_m_z(self.z_)
@@ -93,7 +110,7 @@ class nonlinear_power(evol.evol):
     #---------------------------------------------------------------------------    
     def wint_(self,r):
         """
-        @brief the subroutine wint, finds the effective spectral quantities
+        The subroutine wint, finds the effective spectral quantities
         rknl, rneff & rncur. This it does by calculating the radius of 
         the Gaussian filter at which the variance is unity = rknl.
         rneff is defined as the first derivative of the variance, calculated 
@@ -128,7 +145,7 @@ class nonlinear_power(evol.evol):
     #---------------------------------------------------------------------------
     def growth_factor(self,z):
         """
-        @brief g(Omega) from Carroll, Press & Turner (1992), unnormalized
+        g(Omega) from Carroll, Press & Turner (1992), unnormalized
         """
         om_m = self.omega_m_z(z)
         om_l = self.omega_l_z(z)
@@ -138,7 +155,7 @@ class nonlinear_power(evol.evol):
     #---------------------------------------------------------------------------
     def p_cdm(self,rk):
         """
-        @brief the un-normalized linear CDM power spectrum
+        The un-normalized linear CDM power spectrum
         """
         rk = numpy.asarray(rk)
         p_index = 1.
@@ -153,7 +170,7 @@ class nonlinear_power(evol.evol):
     #---------------------------------------------------------------------------
     def D2_L(self,rk):
         """
-        @brief return the dimensionless, linear power spectrum
+        Return the dimensionless, linear power spectrum
         """
         rk = numpy.asarray(rk)
         return self.amp * self.amp * self.p_cdm(rk)
@@ -162,8 +179,8 @@ class nonlinear_power(evol.evol):
     #---------------------------------------------------------------------------
     def D2_NL(self,rk,return_components = False):
         """
-        @brief dimensionless halo model nonlinear fitting formula as described 
-        inAppendix C of Smith et al. (2003)
+        Dimensionless halo model nonlinear fitting formula as described 
+        in Appendix C of Smith et al. (2003)
         """
         rk = numpy.asarray(rk)
         rn    = self.rneff
@@ -216,7 +233,7 @@ class nonlinear_power(evol.evol):
     #---------------------------------------------------------------------------
     def D2_NL_PD96(self,rklin):
         """
-        @brief implement the Peacock & Dodds 1996 power spectrum.  Because
+        Implement the Peacock & Dodds 1996 power spectrum.  Because
         of the way this is calculated, the user must supply the linear
         wave number, and a tuple (rk_pd,pnl_pd) is returned.
         rk_pd is the nonlinear wave number associated with the input
@@ -235,7 +252,7 @@ class nonlinear_power(evol.evol):
 
     def rn_cdm(self,rk):
         """
-        effective spectral index used in Peacock & Dodds (1996)
+        Effective spectral index used in Peacock & Dodds (1996)
         """
         y     = self.p_cdm(rk/2.)
         yplus = self.p_cdm(rk*1.01/2.)

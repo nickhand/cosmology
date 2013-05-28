@@ -10,30 +10,47 @@ import numpy
 from scipy.ndimage import gaussian_filter1d
 from scipy import interpolate, integrate
 
-from . import cosmo, evol, linear_growth
+from cosmology import cosmo, core, linear_growth, parameters
 import utils.physical_constants as pc
 
-class halo_model(evol.evol):
+class halo_model(core.cosmology):
     """
-    @brief a class that implements various halo model relation quantities
+    A class that implements various halo model relation quantities.
+    
+    Notes
+    -----
+    Default cosmology is the Planck 2013 parameter set.
     """
     
-    def __init__(self, tf='EH_full', fitting_func=1):
+    def __init__(self, tf='EH_full', fitting_func=1, cosmo_dict=None):
         """
-        @brief mass functions used are based on fitting_func:
+        Parameters
+        ----------
+        Mass functions used are based on fitting_func:
             1 = Tinker 2008
             2 = Jenkins 2001
             3 = Sheth-Tormen 1999
             4 = Warren 2005
             5 = Press-Schechter
         """
+        # set up the cosmo dict
+        if cosmo_dict is None: 
+            print("Warning: No default cosmology has been specified, "
+                          "using Planck 2013 parameters.")
+            cosmo.unify(parameters.Planck13())
+        else:
+            cosmo.update(cosmo_dict)
+            
+        # verify and set params
+        self._verify_params()
+        self._set_extras()
         
         self.growth = linear_growth.linear_growth(tf=tf)
         self.fitting_func = fitting_func
     
     def halo_mass_function(self, logMassMin, logMassMax, z):
         r"""
-        @brief compute the halo mass number abundance at z in 1/Mpc^3 given by
+        Compute the halo mass number abundance at z in 1/Mpc^3 given by
     
         dn(M, z) = f(\sigma) * \frac{\bar{\rho}_m}{M} \ 
                                 * \frac{d ln(\sigma^{-1})}{dM} * dM
@@ -94,7 +111,7 @@ class halo_model(evol.evol):
     #---------------------------------------------------------------------------
     def multiplicity_function(self, sigma, z):
         """
-        @brief compute the multiplicity function: this is where the various 
+        Compute the multiplicity function: this is where the various 
         fitting functions/analytic theories are different.  The various places
         where I found these fitting function sare listed below.
         """
@@ -151,7 +168,7 @@ class halo_model(evol.evol):
     #---------------------------------------------------------------------------
     def cluster_count(self, area, M_cut, zlim, Nz = 10):
         """
-        @brief compute cluster count, given a mass function and cosmology, in 
+        Compute cluster count, given a mass function and cosmology, in 
         a given survey area and halo mass range
         """
         area *= (numpy.pi/180.)**2 # put the area into steradians from deg2
@@ -176,7 +193,7 @@ class halo_model(evol.evol):
     #---------------------------------------------------------------------------     
     def bias_of_M(self, mass, z):
         """
-        @brief bias as a function of mass and redshift as computed from simulations
+        The bias as a function of mass and redshift as computed from simulations
         in Tinker et al (2010) equation 6
         """
 
@@ -214,7 +231,7 @@ class halo_model(evol.evol):
     #---------------------------------------------------------------------------   
     def nonlinear_scales(self, z):
         """
-        @brief compute the nonlinear mass and radius defined as where 
+        The nonlinear mass and radius defined as where 
         sigma(M, z) = delta_crit
         """
         # compute the overdensity variance at several radii
@@ -235,8 +252,8 @@ class halo_model(evol.evol):
     #--------------------------------------------------------------------------- 
     def concentration(self, mass, z):
         """
-        @brief determine the concentration, taken from 
-        Yoshida et al (2001) equation 7 (which is from Bullock et al 2001)
+        The concentration, taken from Yoshida et al (2001) equation 7 
+        (which is from Bullock et al 2001)
         """
     
         M_nl, R = self.nonlinear_scales(z)
@@ -246,7 +263,7 @@ class halo_model(evol.evol):
     #---------------------------------------------------------------------------
     def r_s(self, mass, z):
         """
-        @brief the scale radius of a NFW profile in Mpc, as computed
+        The scale radius of a NFW profile in Mpc, as computed
         from Yoshida et al (2001)
         """
     
@@ -266,7 +283,7 @@ class halo_model(evol.evol):
     #---------------------------------------------------------------------------    
     def rho_s(mass, z, **cosmo):
         """
-        @brief the scale density of a NFW profile in M_sun / Mpc^3, as computed
+        The scale density of a NFW profile in M_sun / Mpc^3, as computed
         from Yoshida et al (2001)
         """
 

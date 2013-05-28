@@ -24,11 +24,11 @@ class tf_eh(object):
         @brief initialize the class with the cosmo params
         """
         
-        self.__set_params(cosmo)
+        self._set_params(cosmo)
     #end __init__
     
     #---------------------------------------------------------------------------
-    def __set_params(self, cosmo):
+    def _set_params(self, cosmo):
         """
         @brief set the various parameters needed for the fitting
         """    
