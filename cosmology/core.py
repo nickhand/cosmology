@@ -10,7 +10,7 @@ import numpy
 from scipy import integrate
 
 from cosmology import cosmo, parameters
-import utils.decorators as d
+from utils import pytools
 import utils.samplinator as s
 import utils.physical_constants as pc
 
@@ -215,7 +215,7 @@ class cosmology(s.with_sampleable_methods):
     #end set_current
         
     #---------------------------------------------------------------------------
-    @d.call_item_by_item
+    @pytools.call_item_by_item
     def _E(self, z):
         """
         @brief the unitless Hubble expansion rate at redshift z, 
@@ -231,7 +231,7 @@ class cosmology(s.with_sampleable_methods):
     #end _E
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def H(self, z):
         """
         The value of the Hubble constant at redshift z in km/s/Mpc
@@ -240,7 +240,7 @@ class cosmology(s.with_sampleable_methods):
     #end H
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def w(self,z):
         """
         The dark energy equation of state: w(z) = w0 + w1*z
@@ -249,7 +249,7 @@ class cosmology(s.with_sampleable_methods):
     #end w
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def a(self, z):
         """
         The scale factor at redshift z
@@ -258,7 +258,7 @@ class cosmology(s.with_sampleable_methods):
     #end a
     
     #---------------------------------------------------------------------------
-    @d.call_item_by_item
+    @pytools.call_item_by_item
     def lookback_time(self, z):
         """
         The lookback time, defined as the difference between the age 
@@ -270,7 +270,7 @@ class cosmology(s.with_sampleable_methods):
     #end lookback_time
     
     #---------------------------------------------------------------------------
-    @d.call_item_by_item
+    @pytools.call_item_by_item
     def age(self, z):
         """
         The age of the universe at redshift z in Gyr.
@@ -281,7 +281,7 @@ class cosmology(s.with_sampleable_methods):
     #end age
     
     #---------------------------------------------------------------------------
-    @d.call_item_by_item
+    @pytools.call_item_by_item
     def Dc(self, z):
         """
         The line of sight comoving distance in Mpc (eqn 15 from Hogg 1999).
@@ -296,7 +296,7 @@ class cosmology(s.with_sampleable_methods):
     #end Dc
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def Dp(self, z):
         """
         The proper or physical distance
@@ -305,7 +305,7 @@ class cosmology(s.with_sampleable_methods):
     #end Dp
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def Dm(self, z):
         """
         The transverse comoving distance in Mpc (eqn 16 from Hogg 1999).
@@ -323,7 +323,7 @@ class cosmology(s.with_sampleable_methods):
     #end Dm
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def Da(self, z):
         """
         The angular diameter distance in Mpc (eqn 18 from Hogg 1999).
@@ -356,7 +356,7 @@ class cosmology(s.with_sampleable_methods):
     #end Da12
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def Dl(self, z):
         """
         The luminosity distance in Mpc (eqn 21 of Hogg 1999)
@@ -365,7 +365,7 @@ class cosmology(s.with_sampleable_methods):
     #end Dl
     
     #---------------------------------------------------------------------------
-    @d.call_item_by_item
+    @pytools.call_item_by_item
     def D_hor(self, z):
         """
         The horizon distance at redshift z in Mpc (eqn)
@@ -377,7 +377,7 @@ class cosmology(s.with_sampleable_methods):
     #end D_hor
 
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def mu(self, z):
         """
         The distance modulus
@@ -386,7 +386,7 @@ class cosmology(s.with_sampleable_methods):
     #end mu
 
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def dVc(self, z):
         """
         The differential comoving volume element dV_c/dz/dSolidAngle.
@@ -399,7 +399,7 @@ class cosmology(s.with_sampleable_methods):
     #end dVc
     
     #----------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def Vc(self, z):
         """
         The comoving volume out to redshift z in Mpc^3. 
@@ -422,7 +422,7 @@ class cosmology(s.with_sampleable_methods):
     #end Vc
 
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def rho_crit(self, z=0):
         """
         The critical (mass) density at redshift z in g/cm^3
@@ -436,7 +436,7 @@ class cosmology(s.with_sampleable_methods):
     #end rho_crit
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def rho_mean(self, z=0):
         """
         The mean density of the universe, at redshift z in g/cm^3
@@ -445,7 +445,7 @@ class cosmology(s.with_sampleable_methods):
     #end rho_mean
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def e_crit(self,z=0):
         """
         The critical (energy) density at redshift z in erg/cm^3
@@ -454,7 +454,7 @@ class cosmology(s.with_sampleable_methods):
     #end e_crit
                
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def lens_kernel(self,z, z_source):
         """
         The value of the lens kernel at a redshift z, given a
@@ -470,7 +470,7 @@ class cosmology(s.with_sampleable_methods):
     #end lens_kernel
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def omega_m_z(self, z):
         """
         The matter density omega_m as a function of redshift
@@ -482,7 +482,7 @@ class cosmology(s.with_sampleable_methods):
     #end omega_m_z
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def omega_l_z(self, z):
         """
         The dark energy density omega_l as a function of redshift
@@ -491,7 +491,7 @@ class cosmology(s.with_sampleable_methods):
     #end omega_l_z
         
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def angular_size(self, z, diameter):
         """
         The angular size of an object of input diameter and at redshift z
@@ -512,7 +512,7 @@ class cosmology(s.with_sampleable_methods):
     #end angular_size
     
     #---------------------------------------------------------------------------
-    @d.call_as_array
+    @pytools.call_as_array
     def physical_size(self, z, ang_size):
         """
         Computes the physical size corresponding to an angular size at z
@@ -533,7 +533,7 @@ class cosmology(s.with_sampleable_methods):
     #end physical_size
     
     #---------------------------------------------------------------------------
-    @d.call_item_by_item
+    @pytools.call_item_by_item
     def dump(self, z=None):
         print '-----------------------------'
         print "Cosmology: "
