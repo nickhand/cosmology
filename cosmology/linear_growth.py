@@ -36,7 +36,7 @@ class linear_growth(core.cosmology):
                           "using Planck 2013 parameters.")
             cosmo.unify(parameters.Planck13())
         else:
-            cosmo.update(cosmo_dict)
+            self.set_current(cosmo_dict)
             
         # verify and set params
         self._verify_params()
