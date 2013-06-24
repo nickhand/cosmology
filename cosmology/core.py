@@ -169,8 +169,7 @@ class cosmology(s.with_sampleable_methods):
     #-------------------------------------------------------------------------------
     def get_current(self):
         """ 
-        @brief get the current cosmology. The default is the planck 2013
-        parameters.
+        Get the current cosmology. The default is the planck 2013 parameters.
         """
         return cosmo
     #end get_current
@@ -178,14 +177,21 @@ class cosmology(s.with_sampleable_methods):
     #-------------------------------------------------------------------------------
     def set_current(self, cosmo_dict):
         """ 
-        @brief set the current cosmology.
+        Set the current cosmology.
 
         Call this with an empty string ('') to get a list of the strings
         that map to available pre-defined cosmologies.
 
-        @param cosmo_dict : the cosmology to use (str or dict)  
+        Parameters
+        ----------
+        cosmo_dict : str or dict 
+            the cosmology to use
         """
-
+        if cosmo_dict == "":
+             print("Valid cosmologies:\n%s" 
+                        %([x()['name'] for x in parameters.available]))
+             return
+             
         if isinstance(cosmo_dict, basestring):
             _current = parameters.get_cosmology_from_string(cosmo_dict)
         elif isinstance(cosmo_dict, dict):
@@ -218,7 +224,7 @@ class cosmology(s.with_sampleable_methods):
     @pytools.call_item_by_item
     def _E(self, z):
         """
-        @brief the unitless Hubble expansion rate at redshift z, 
+        The unitless Hubble expansion rate at redshift z, 
         modified to include non-constant w parameterized linearly 
         with z ( w = w0 + w1*z )
         """
@@ -235,6 +241,11 @@ class cosmology(s.with_sampleable_methods):
     def H(self, z):
         """
         The value of the Hubble constant at redshift z in km/s/Mpc
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return 100. * cosmo.h * self._E(z)
     #end H
@@ -244,6 +255,11 @@ class cosmology(s.with_sampleable_methods):
     def w(self,z):
         """
         The dark energy equation of state: w(z) = w0 + w1*z
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return cosmo.w0 + cosmo.w1 * z
     #end w
@@ -253,6 +269,11 @@ class cosmology(s.with_sampleable_methods):
     def a(self, z):
         """
         The scale factor at redshift z
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return 1. / (1. + z)
     #end a
@@ -263,6 +284,11 @@ class cosmology(s.with_sampleable_methods):
         """
         The lookback time, defined as the difference between the age 
         of the Universe now and the age at z
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         f = lambda z: 1/(1.+z)/self._E(z)
         I = integrate.quad(f, 0, z)
@@ -274,6 +300,11 @@ class cosmology(s.with_sampleable_methods):
     def age(self, z):
         """
         The age of the universe at redshift z in Gyr.
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         f = lambda z: 1/(1.+z)/self._E(z)
         I = integrate.quad(f, z, numpy.inf)
@@ -286,6 +317,11 @@ class cosmology(s.with_sampleable_methods):
         """
         The line of sight comoving distance in Mpc (eqn 15 from Hogg 1999).
         Remains constant with epoch if objects are in the Hubble flow
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         if z==0:
             return 0
@@ -300,6 +336,11 @@ class cosmology(s.with_sampleable_methods):
     def Dp(self, z):
         """
         The proper or physical distance
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return self.Dc(z)/(1.+z)
     #end Dp
@@ -311,6 +352,11 @@ class cosmology(s.with_sampleable_methods):
         The transverse comoving distance in Mpc (eqn 16 from Hogg 1999).
         At same redshift but separated by angle dtheta;
         Dm * dtheta is transverse comoving distance
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         sOk = numpy.sqrt(numpy.abs(self._omega_k_0))
         Dh = self._hubble_distance
@@ -329,6 +375,11 @@ class cosmology(s.with_sampleable_methods):
         The angular diameter distance in Mpc (eqn 18 from Hogg 1999).
         Ratio of an objects physical transvserse size to its
         angular size in radians
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return self.Dm(z) / (1.+ z)
     #end Da
@@ -338,6 +389,13 @@ class cosmology(s.with_sampleable_methods):
         """
         The angular diameter distance between objects at 2 redshifts in Mpc.
         Useful for gravitational lensing (eqn 19 of Hogg 1999)
+
+        Parameters
+        ----------
+        z1 : float
+            the first redshift
+        z1 : float
+            the second redshift
         """
         # does not work for negative curvature
         assert(self._omega_k_0) >= -1e4
@@ -360,6 +418,11 @@ class cosmology(s.with_sampleable_methods):
     def Dl(self, z):
         """
         The luminosity distance in Mpc (eqn 21 of Hogg 1999)
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return (1. + z) * self.Dm(z)
     #end Dl
@@ -370,6 +433,11 @@ class cosmology(s.with_sampleable_methods):
         """
         The horizon distance at redshift z in Mpc (eqn)
         (physical dist that light can travel from z' = infty to z' = z)
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         f = lambda zp : 1 / self._E(zp)
         I = integrate.quad(f, z, numpy.inf)
@@ -381,6 +449,11 @@ class cosmology(s.with_sampleable_methods):
     def mu(self, z):
         """
         The distance modulus
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return 5. * numpy.log10(self.Dl(z) * pc.mega) - 5.
     #end mu
@@ -392,6 +465,11 @@ class cosmology(s.with_sampleable_methods):
         The differential comoving volume element dV_c/dz/dSolidAngle.
         Dimensions are volume per unit redshift per unit solid angle.
         Units are Mpc**3 Steradians^-1. From eqn 28 of Hogg 1999.
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         Dm = self.Dm(z)
         E = self._E(z)
@@ -404,6 +482,11 @@ class cosmology(s.with_sampleable_methods):
         """
         The comoving volume out to redshift z in Mpc^3. 
         From eqn 29 of Hogg 1999.
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         Ok = self._omega_k_0
         Dh = self._hubble_distance
@@ -423,9 +506,14 @@ class cosmology(s.with_sampleable_methods):
 
     #---------------------------------------------------------------------------
     @pytools.call_as_array
-    def rho_crit(self, z=0):
+    def rho_crit(self, z):
         """
         The critical (mass) density at redshift z in g/cm^3
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at.
         """
         if z == 0.: 
             H =  self._H0
@@ -437,30 +525,47 @@ class cosmology(s.with_sampleable_methods):
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array
-    def rho_mean(self, z=0):
+    def rho_mean(self, z):
         """
         The mean density of the universe, at redshift z in g/cm^3
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at.
         """
         return self.omega_m_z(z) * self.rho_crit(z) 
     #end rho_mean
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array
-    def e_crit(self,z=0):
+    def e_crit(self, z):
         """
         The critical (energy) density at redshift z in erg/cm^3
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at.
         """
         return self.rho_crit(z) * pc.c_light**2
     #end e_crit
                
     #---------------------------------------------------------------------------
     @pytools.call_as_array
-    def lens_kernel(self,z, z_source):
+    def lens_kernel(self, z, z_source):
         """
         The value of the lens kernel at a redshift z, given a
         source at redshift z_source
 
         units are strange: cm Mpc^2 / g
+        
+        Parameters
+        ----------
+        z : float
+            the redshift to compute the lens kernel at
+        z_source : float
+            the redshift of the source
         """
         Ds = self.Dc(z_source)
         D = self.Dc(z)
@@ -477,6 +582,11 @@ class cosmology(s.with_sampleable_methods):
 
         From Lahav et al. 1991 equations 11b-c. This is equivalent to 
         equation 10 of Eisenstein & Hu 1999.
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return cosmo.omega_m_0 * (1.+z)**3. / self._E(z)**2.
     #end omega_m_z
@@ -486,6 +596,11 @@ class cosmology(s.with_sampleable_methods):
     def omega_l_z(self, z):
         """
         The dark energy density omega_l as a function of redshift
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
         """
         return cosmo.omega_l_0 / self._E(z)**2
     #end omega_l_z
@@ -566,5 +681,3 @@ class cosmology(s.with_sampleable_methods):
     #end dump
     #---------------------------------------------------------------------------
 #end class cosmology
-    
-    

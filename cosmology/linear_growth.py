@@ -65,7 +65,7 @@ class linear_growth(core.cosmology):
     @pytools.call_as_array
     def growth_factor(self, z, integrate=False):
         """
-        @brief the linear growth factor. If integrate = False, use approximation
+        The linear growth factor. If integrate = False, use approximation
         from Carol, Press, & Turner (1992), else integrate the ODE.
         Normalized to 1 at z = 0.
         """
@@ -86,7 +86,7 @@ class linear_growth(core.cosmology):
     @pytools.call_as_array
     def __growth_factor_integrate(self, z):
         """
-        @brief solves the ODE for the linear growth of matter overdensity:
+        Solves the ODE for the linear growth of matter overdensity:
          d_k'' + 2Hd_k' - 3/2 Omega_m H^2 d_k = 0
 
         d_k(z) = D(z) d_k(z=0)
@@ -163,7 +163,7 @@ class linear_growth(core.cosmology):
     #---------------------------------------------------------------------------
     def T_BBKS(self, k):
         """
-        @brief the linear transfer function due to Bardeen et al 1986
+        The linear transfer function due to Bardeen et al 1986
         equation 7.70 from Dodelson's Modern Cosmology. q = k / (omega_m*h**2)
         """
         q = k / (cosmo.omega_m_0*cosmo.h**2)
@@ -175,7 +175,7 @@ class linear_growth(core.cosmology):
     @pytools.call_as_array
     def P_k(self, k, z):
         """
-        @brief uses the specified transfer function to define an approximation 
+        Uses the specified transfer function to define an approximation 
         to the linear power spectrum, appropriately normalized via sigma8, 
         at redshift z. The primordial spectrum is assumed to be proportional 
         to k^n
@@ -203,7 +203,7 @@ class linear_growth(core.cosmology):
     #---------------------------------------------------------------------------
     def w_tophat(self, k, r):
         """
-        @brief the k-space Fourier transform of a spherical tophat.
+        The k-space Fourier transform of a spherical tophat.
         """
         return 3.0 * (numpy.sin(k*r) - k*r*numpy.cos(k*r)) / (k*r)**3
     #end w_tophat
@@ -211,7 +211,7 @@ class linear_growth(core.cosmology):
     #---------------------------------------------------------------------------
     def __compute_P0(self):
         """
-        @brief compute the power spectrum normalization based on the
+        Compute the power spectrum normalization based on the
         value of sigma_8, which is sigma_r at r = 8/h Mpc
         """
         self._P0 = 1.0
@@ -226,7 +226,7 @@ class linear_growth(core.cosmology):
     @pytools.call_item_by_item
     def __sigma_r_integral(self, r, k, Pk):
         """
-        @brief internal module to compute sigma_r integral
+        Internal module to compute sigma_r integral
         """ 
         dx = numpy.log(k[1]) - numpy.log(k[0])
         integrand = k**2 * Pk * self.w_tophat(k, r)**2
@@ -236,7 +236,7 @@ class linear_growth(core.cosmology):
     #---------------------------------------------------------------------------
     def sigma_r(self, r, z):
         """
-        @brief this returns the average mass fluctuation within a sphere of 
+        This returns the average mass fluctuation within a sphere of 
         radius r, based on the power spectrum defined in self.P_BBKS
         """
         # compute power spectrum at z = 0 to use in integral
@@ -253,7 +253,7 @@ class linear_growth(core.cosmology):
     @pytools.call_item_by_item
     def __xi_r_integral(self, r, k, Pk):
         """
-        @brief internal function to compute the correlation function integral
+        Internal function to compute the correlation function integral
         """
         # integrand is in log space: x = log(k) is evenly spaced
         #                           dx = dk/k
@@ -269,7 +269,7 @@ class linear_growth(core.cosmology):
     #---------------------------------------------------------------------------
     def xi_r(self, r, z):
         r"""
-        @brief uses the specified transfer function to define an approximation 
+        Uses the specified transfer function to define an approximation 
         to the matter correlation function, at redshift z. Given by
         
         \xi(r, z) = \int_0^\infty \frac{k sin(kr)}{2 \pi^2 r}~P(k, z)~
@@ -292,7 +292,7 @@ class linear_growth(core.cosmology):
     @pytools.call_as_array
     def mass_to_radius(self, mass, z):
         """
-        @brief convenience function to convert a mass in M_sun to the 
+        Convenience function to convert a mass in M_sun to the 
         radius in Mpc of the corresponding sphere
         """
         # the radius corresponding to the input mass
@@ -306,7 +306,7 @@ class linear_growth(core.cosmology):
     @pytools.call_as_array
     def radius_to_mass(self, R, z):
         """
-        @brief convenience function to convert a radius in Mpc to the mass in 
+        Convenience function to convert a radius in Mpc to the mass in 
         M_sun within the sphere
         """
         # the radius corresponding to the input mass

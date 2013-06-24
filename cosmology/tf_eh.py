@@ -15,7 +15,7 @@ import utils.physical_constants as pc
 
 class tf_eh(object):
     """
-    @brief class to implement the Eisenstein & Hu 1998 fitting formulae
+    A class to implement the Eisenstein & Hu 1998 fitting formulae
      for the matter transfer function. All wavenumbers in Mpc^-1
     """
     
@@ -30,7 +30,7 @@ class tf_eh(object):
     #---------------------------------------------------------------------------
     def _set_params(self, cosmo):
         """
-        @brief set the various parameters needed for the fitting
+        Set the various parameters needed for the fitting
         """    
         if 'omega_b_0' not in cosmo.keys(): cosmo.omega_b_0 = 0.0
         
@@ -101,7 +101,7 @@ class tf_eh(object):
     #---------------------------------------------------------------------------
     def full(self, k):
         """
-        @brief returns the value of the full transfer function fitting formula.
+        Returns the value of the full transfer function fitting formula.
         This is the form given in Section 3 of Eisenstein & Hu (1998).
         k is the wavenumber at which to calculate transfer function, in Mpc^-1.
         """
@@ -138,7 +138,7 @@ class tf_eh(object):
     #---------------------------------------------------------------------------
     def no_wiggles(self, k):
         """
-        @brief the value of an approximate transfer function that captures the
+        The value of an approximate transfer function that captures the
         non-oscillatory part of a partial baryon transfer function. The 
         baryon oscillations are left out, but the suppression of power below
         the sound horizon is included.
@@ -164,7 +164,7 @@ class tf_eh(object):
     #---------------------------------------------------------------------------
     def no_baryons(self, k):
         """
-        @brief the value of the transfer function for a zero-baryon universe, 
+        The value of the transfer function for a zero-baryon universe, 
         as fit in Eisenstein and Hu 1998
         k is the wavenumber at which to calculate transfer function, in Mpc^-1.
         """
@@ -177,7 +177,7 @@ class tf_eh(object):
     #---------------------------------------------------------------------------
     def sound_horizon_fit(self, omega_m_0, f_baryon, hubble):
         """
-        @brief the approximate value of the sound horizon, in h^-1 Mpc
+        The approximate value of the sound horizon, in h^-1 Mpc
         """
         omhh = omega_m_0*hubble*hubble
         sound_horizon_fit_mpc = 44.5*numpy.log(9.83/omhh) / \

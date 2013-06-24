@@ -140,14 +140,15 @@ available = (Planck13, WMAP9, WMAP7, WMAP5)
 #-------------------------------------------------------------------------------
 def get_cosmology_from_string(arg):
     """ 
-    @brief return a cosmology instance from a string.
+    Return a cosmology instance from a string.
     """
     try:
         cosmo_func = getattr(sys.modules[__name__], arg)
         cosmo_dict = cosmo_func()
     except AttributeError:
         s = "Unknown cosmology '%s'. Valid cosmologies:\n%s" % (
-                arg, available)
+                arg, [x()['name'] for x in available])
         raise ValueError(s)
     return cosmo_dict
+#-------------------------------------------------------------------------------
 
