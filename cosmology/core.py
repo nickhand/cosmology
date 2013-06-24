@@ -95,7 +95,7 @@ class cosmology(s.with_sampleable_methods):
         if 'flat' in cosmo.keys():
             if cosmo.flat: flat = True
         else:
-            if default_params['flat']: flat = True
+            if self._default_params['flat']: flat = True
         
         # replace missing with default params
         used_default = False
@@ -648,8 +648,15 @@ class cosmology(s.with_sampleable_methods):
     #end physical_size
     
     #---------------------------------------------------------------------------
-    @pytools.call_item_by_item
-    def dump(self, z=None):
+    def dump(self, z=1.0):
+        """
+        Print out the major cosmological values at a redshift z
+        
+        Parameters
+        ----------
+        z : float, optional
+            the redshift to compute the function at. Default is z=0
+        """
         print '-----------------------------'
         print "Cosmology: "
         print "   Omega_m = %.4g" % cosmo.omega_m_0
@@ -668,14 +675,14 @@ class cosmology(s.with_sampleable_methods):
         print ''
         if z!=None:
             print "For z = %.2f:" % z
-            print "   Hubble Parameter H(z)          %.2f km/s/Mpc" % self.H(z)
-            print '   Lookback time                  %.2f Gyr' % self.lookback_time(z)
-            print '   Age of the universe            %.2f Gyr' % self.age(z)
-            print '   Scale Factor a                 %.2f'     % self.a(z)
-            print '   Comoving L.O.S. Distance (w)   %.2f Mpc' % self.Dc(z)
-            print '   Angular diameter distance      %.2f Mpc' % self.Da(z)
-            print '   Luminosity distance            %.2f Mpc' % self.Dl(z)
-            print '   Distance modulus               %.2f mag' % self.mu(z)
+            print "   Hubble Parameter H(z)          %.5g km/s/Mpc" % self.H(z)
+            print '   Lookback time                  %.5g Gyr' % self.lookback_time(z)
+            print '   Age of the universe            %.5g Gyr' % self.age(z)
+            print '   Scale Factor a                 %.5g'     % self.a(z)
+            print '   Comoving L.O.S. Distance (w)   %.5g Mpc' % self.Dc(z)
+            print '   Angular diameter distance      %.5g Mpc' % self.Da(z)
+            print '   Luminosity distance            %.5g Mpc' % self.Dl(z)
+            print '   Distance modulus               %.5g mag' % self.mu(z)
 
         print '-----------------------------'
     #end dump
