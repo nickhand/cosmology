@@ -151,7 +151,7 @@ if __name__ == '__main__':
                     zlim = zlim, 
                     Nz = 1000, 
                     cosmo_params='Planck13',
-                    pspec_kwargs = {'use_takahashi' : True})
+                    pspec_kwargs = {'use_takahashi' : False})
     
     # plot the power spectrum
     pylab.loglog(ell, Pl)
