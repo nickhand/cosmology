@@ -13,7 +13,7 @@ from cosmology import cosmo, core, tf_eh, parameters
 from utils import pytools
 import utils.physical_constants as pc
 
-class linear_growth(core.cosmology):
+class linear_power(core.cosmology):
     """
     A class used to compute quantities from linear perturbation theory and 
     linear power spectrum analysis. 
@@ -22,7 +22,7 @@ class linear_growth(core.cosmology):
     -----
     Default cosmology is the Planck 2013 parameter set.
     """
-    def __init__(self, tf='EH_full', cosmo_dict=None):
+    def __init__(self, tf='EH_full', cosmo_params=None):
         """
         The available transfer functions are: 
             'BBKS' : approximation from Bardeen et al. 1986
@@ -31,12 +31,12 @@ class linear_growth(core.cosmology):
             'EH_no_baryons' :  CDM TF from EH 1998
         """
         # set up the cosmo dict
-        if cosmo_dict is None: 
+        if cosmo_params is None and cosmo.is_empty():  
             print("Warning: No default cosmology has been specified, "
                           "using Planck 2013 parameters.")
             cosmo.unify(parameters.Planck13())
-        else:
-            self.set_current(cosmo_dict)
+        elif cosmo_params is not None:
+            self.set_current(cosmo_params)
             
         # verify and set params
         self._verify_params()
@@ -79,12 +79,12 @@ class linear_growth(core.cosmology):
             return 2.5*om_m / (om_m**(4./7.) - om_l + (1. + om_m/2.) * \
                 (1.+om_l/70.)) / (norm*(1+z))
         else:
-            return self.__growth_factor_integrate(z)
+            return self._growth_factor_integrate(z)
     #end growth_factor
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array
-    def __growth_factor_integrate(self, z):
+    def _growth_factor_integrate(self, z):
         """
         Solves the ODE for the linear growth of matter overdensity:
          d_k'' + 2Hd_k' - 3/2 Omega_m H^2 d_k = 0
@@ -165,9 +165,14 @@ class linear_growth(core.cosmology):
         """
         The linear transfer function due to Bardeen et al 1986
         equation 7.70 from Dodelson's Modern Cosmology. q = k / (omega_m*h**2)
+        
+        Parameters
+        ----------
+        k : float or numpy.ndarray
+            the wavenumbers in units of 1 / Mpc
         """
         q = k / (cosmo.omega_m_0*cosmo.h**2)
-        return numpy.log(1+2.34*q)/(2.34*q) * \
+        return numpy.log(1 + 2.34*q)/(2.34*q) * \
                (1 + 3.89*q + (16.1*q)**2 + (5.46*q)**3 + (6.71*q)**4)**(-0.25)
     #end T_BBKS   
     
@@ -182,11 +187,21 @@ class linear_growth(core.cosmology):
         
         Uses equation 25 of Eisenstein & Hu (EH) 1999 to compute P(k)
 
-        Units of k are assumed to be Mpc^-1
+        Parameters
+        ----------
+        k : numpy.ndarray or float
+            the wavenumber in units of 1 / Mpc
+        z : float
+            the redshift to compute the spectrum at
+        
+        Returns
+        -------
+        P_k : numpy.ndarray or float
+            linear matter power spectrum in units of Mpc**3
         """
         # compute P0 if it is not yet computed
         if self._P0 == None:
-            self.__compute_P0()
+            self._compute_P0()
           
         # set the spectral index  
         if 'n' in cosmo.keys():
@@ -196,8 +211,9 @@ class linear_growth(core.cosmology):
         
         Tk = self.tf(k)
         fg = self.growth_factor(z)
-        q = k/(cosmo.omega_m_0 * cosmo.h**2)*(pc.T_cmb/2.7)**2
-        return self._P0 * (k**n) * (Tk*fg)**2
+        P_k = self._P0 * (k)**n * (Tk*fg)**2 
+        
+        return P_k
     #end Pk
     
     #---------------------------------------------------------------------------
@@ -209,7 +225,7 @@ class linear_growth(core.cosmology):
     #end w_tophat
     
     #---------------------------------------------------------------------------
-    def __compute_P0(self):
+    def _compute_P0(self):
         """
         Compute the power spectrum normalization based on the
         value of sigma_8, which is sigma_r at r = 8/h Mpc
@@ -220,18 +236,18 @@ class linear_growth(core.cosmology):
                         self.w_tophat(k, 8./cosmo.h)**2
         I = integrate.quad( I_dk, 0, numpy.inf )
         self._P0 = (cosmo.sigma_8**2) * (2 * numpy.pi**2) / I[0]
-    #end __compute_P0
+    #end _compute_P0
     
     #---------------------------------------------------------------------------
     @pytools.call_item_by_item
-    def __sigma_r_integral(self, r, k, Pk):
+    def _sigma_r_integral(self, r, k, Pk):
         """
         Internal module to compute sigma_r integral
         """ 
         dx = numpy.log(k[1]) - numpy.log(k[0])
         integrand = k**2 * Pk * self.w_tophat(k, r)**2
         return integrate.simps(integrand*k, dx=dx )
-    #end __sigma_r_integral
+    #end _sigma_r_integral
     
     #---------------------------------------------------------------------------
     def sigma_r(self, r, z):
@@ -243,7 +259,7 @@ class linear_growth(core.cosmology):
         k = numpy.logspace(-7, 5, 1e5)
         Pk_0 = self.P_k(k, 0.)
         
-        I = self.__sigma_r_integral(r, k, Pk_0)
+        I = self._sigma_r_integral(r, k, Pk_0)
         fg = self.growth_factor(z)
 
         return fg * numpy.sqrt( I / (2*numpy.pi**2) )
@@ -251,7 +267,7 @@ class linear_growth(core.cosmology):
     
     #---------------------------------------------------------------------------    
     @pytools.call_item_by_item
-    def __xi_r_integral(self, r, k, Pk):
+    def _xi_r_integral(self, r, k, Pk):
         """
         Internal function to compute the correlation function integral
         """
@@ -264,7 +280,7 @@ class linear_growth(core.cosmology):
         integrand = k**2 * 0.5/ numpy.pi**2. * numpy.sin(k*r)*Pk / r 
 
         return integrate.simps(integrand, dx=dx )
-    #end __Xi_r_integral
+    #end _Xi_r_integral
     
     #---------------------------------------------------------------------------
     def xi_r(self, r, z):
@@ -282,7 +298,7 @@ class linear_growth(core.cosmology):
         k = numpy.logspace(-7, 5, 1e5)
         Pk_0 = self.P_k(k, 0.)
         
-        I = self.__xi_r_integral(r, k, Pk_0)
+        I = self._xi_r_integral(r, k, Pk_0)
         fg = self.growth_factor(z)
         
         return (fg)**2 * I 

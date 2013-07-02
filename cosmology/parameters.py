@@ -17,6 +17,7 @@
      sigma_8     Density perturbation amplitude
      tau         Ionization optical depth
      z_reion     Redshift of hydrogen reionization
+     z_star      Redshift of the surface of last scattering
      t0          Age of the universe in Gyr
      w0          The dark energy equation of state
      w1          The redshift derivative of w0
@@ -43,6 +44,7 @@ def Planck13():
             'sigma_8' : 0.8288,
             'tau' : 0.0952, 
             'z_reion' : 11.52,
+            'z_star' : 1090., 
             't0' : 13.7965,
             'Tcmb_0' : 2.72528,
             'Neff' : 3.046, 
@@ -71,6 +73,7 @@ def WMAP9():
             'sigma_8' : 0.820,
             'tau' : 0.081, 
             'z_reion' : 10.1,
+            'z_star' : 1091.,
             't0' : 13.772,
             'Tcmb_0' : 2.72528,
             'Neff' : 3.046, 
@@ -98,6 +101,7 @@ def WMAP7():
             'sigma_8' : 0.810,
             'tau' : 0.085, 
             'z_reion' : 10.3,
+            'z_star' : 1091.,
             't0' : 13.76,
             'Tcmb_0' : 2.72528,
             'Neff' : 3.046, 
@@ -123,6 +127,7 @@ def WMAP5():
             'sigma_8' : 0.817,
             'tau' : 0.088, 
             'z_reion' : 11.3,
+            'z_star' : 1091.,
             't0' : 13.72,
             'Tcmb_0' : 2.72528,
             'Neff' : 3.046, 

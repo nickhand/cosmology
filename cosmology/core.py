@@ -36,6 +36,7 @@ class cosmology(s.with_sampleable_methods):
                           'sigma_8', 
                           'tau', 
                           'z_reion', 
+                          'z_star',
                           't0', 
                           'w0',
                           'w1',
@@ -44,12 +45,12 @@ class cosmology(s.with_sampleable_methods):
                           
     _default_params = parameters.Planck13()
                           
-    def __init__(self, cosmo_dict=None):
+    def __init__(self, cosmo_params=None):
         """
         
         Parameters
         ----------
-        cosmo_dict : dict
+        cosmo_params : dict, or str 
             allowable keys are: 
             omega_c_0   Omega cold dark matter at z=0
             omega_b_0   Omega baryon at z=0
@@ -69,12 +70,12 @@ class cosmology(s.with_sampleable_methods):
             reference   Reference for the parameters
         """
         
-        if cosmo_dict is None: 
+        if cosmo_params is None: 
             print("Warning: No default cosmology has been specified, "
                           "using Planck 2013 parameters.")
             cosmo.unify(parameters.Planck13())
         else:
-            self.set_current(cosmo_dict)
+            self.set_current(cosmo_params)
             
         # verify and set params
         self._verify_params()
@@ -175,7 +176,7 @@ class cosmology(s.with_sampleable_methods):
     #end get_current
     
     #-------------------------------------------------------------------------------
-    def set_current(self, cosmo_dict):
+    def set_current(self, cosmo_params):
         """ 
         Set the current cosmology.
 
@@ -184,22 +185,22 @@ class cosmology(s.with_sampleable_methods):
 
         Parameters
         ----------
-        cosmo_dict : str or dict 
+        cosmo_params : str or dict 
             the cosmology to use
         """
-        if cosmo_dict == "":
+        if cosmo_params == "":
              print("Valid cosmologies:\n%s" 
                         %([x()['name'] for x in parameters.available]))
              return
              
-        if isinstance(cosmo_dict, basestring):
-            _current = parameters.get_cosmology_from_string(cosmo_dict)
-        elif isinstance(cosmo_dict, dict):
-            _current = cosmo_dict
+        if isinstance(cosmo_params, basestring):
+            _current = parameters.get_cosmology_from_string(cosmo_params)
+        elif isinstance(cosmo_params, dict):
+            _current = cosmo_params
         else:
             raise ValueError(
                 "Argument must be a string or dictionary. Valid strings:"
-                "\n%s" %available)
+                "\n%s" %parameters.available)
         
         # make sure to remove omega_c_0 and omega_b_0 if omega_m_0 is 
         # specified and they are not
@@ -550,29 +551,30 @@ class cosmology(s.with_sampleable_methods):
         """
         return self.rho_crit(z) * pc.c_light**2
     #end e_crit
-               
+    
     #---------------------------------------------------------------------------
     @pytools.call_as_array
-    def lens_kernel(self, z, z_source):
+    def lens_kernel(self, z, z_s):
         """
-        The value of the lens kernel at a redshift z, given a
-        source at redshift z_source
-
-        units are strange: cm Mpc^2 / g
+        The value of the CMB lensing kernel at a redshift z, assuming a flat
+        universe
+        
+        units are strange: km / s
         
         Parameters
         ----------
-        z : float
+        z : float or numpy.ndarray
             the redshift to compute the lens kernel at
-        z_source : float
-            the redshift of the source
         """
-        Ds = self.Dc(z_source)
-        D = self.Dc(z)
+        if 'z_star' not in cosmo.keys():
+            raise ValueError("Need redshift of last scattering to compute "
+                                "CMB lensing kernel")
+        
+        D_s = self.Dm(z_s)
+        D = self.Dm(z)
 
-        return 4*numpy.pi*pc.G / (pc.c_light)**2 * self.Dh / self._E(z) * \
-               D*(Ds-D)/Ds / (1.+z)**2
-    #end lens_kernel
+        return 3./2./self.H(z)*cosmo.omega_m_0*self._H0**2*D*(D_s-D)/D_s
+    #end cmb_lens_kernel
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array

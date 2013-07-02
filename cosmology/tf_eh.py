@@ -20,10 +20,6 @@ class tf_eh(object):
     """
     
     def __init__(self, cosmo):
-        """
-        @brief initialize the class with the cosmo params
-        """
-        
         self._set_params(cosmo)
     #end __init__
     
@@ -38,7 +34,7 @@ class tf_eh(object):
         
         omhh      = cosmo.omega_m_0*cosmo.h**2 # matter physical density
         obhh      = cosmo.omega_b_0*cosmo.h**2 # baryon physical density
-        theta_cmb = pc.T_cmb / 2.7             # normalized temp of cmb
+        theta_cmb = cosmo.Tcmb_0 / 2.7         # normalized temp of cmb
         f_baryon  = obhh / omhh
         
         z_equality = 2.5e4*omhh/theta_cmb**4    # rad-matter equality

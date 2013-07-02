@@ -22,7 +22,7 @@ class halo_model(core.cosmology):
     Default cosmology is the Planck 2013 parameter set.
     """
     
-    def __init__(self, tf='EH_full', fitting_func=1, cosmo_dict=None):
+    def __init__(self, tf='EH_full', fitting_func=1, cosmo_params=None):
         """
         Parameters
         ----------
@@ -34,12 +34,12 @@ class halo_model(core.cosmology):
             5 = Press-Schechter
         """
         # set up the cosmo dict
-        if cosmo_dict is None: 
+        if cosmo_params is None and cosmo.is_empty(): 
             print("Warning: No default cosmology has been specified, "
                           "using Planck 2013 parameters.")
             cosmo.unify(parameters.Planck13())
-        else:
-            self.set_current(cosmo_dict)
+        elif cosmo_params is not None:
+            self.set_current(cosmo_params)
             
         # verify and set params
         self._verify_params()
