@@ -72,8 +72,8 @@ class cosmology(s.with_sampleable_methods):
         
         if cosmo_params is None: 
             print("Warning: No default cosmology has been specified, "
-                          "using Planck 2013 parameters.")
-            cosmo.unify(parameters.Planck13())
+                          "using %s parameters." %parameters.default()['name'])
+            cosmo.unify(parameters.default())
         else:
             self.set_current(cosmo_params)
             
@@ -565,16 +565,14 @@ class cosmology(s.with_sampleable_methods):
         ----------
         z : float or numpy.ndarray
             the redshift to compute the lens kernel at
+        z_s : float
+            the redshift of the source object
         """
-        if 'z_star' not in cosmo.keys():
-            raise ValueError("Need redshift of last scattering to compute "
-                                "CMB lensing kernel")
-        
         D_s = self.Dm(z_s)
         D = self.Dm(z)
 
-        return 3./2./self.H(z)*cosmo.omega_m_0*self._H0**2*D*(D_s-D)/D_s
-    #end cmb_lens_kernel
+        return 3./2./self.H(z)*(1+z)*cosmo.omega_m_0*self._H0**2*D*(D_s-D)/D_s
+    #end lens_kernel
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array

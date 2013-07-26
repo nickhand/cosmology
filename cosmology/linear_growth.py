@@ -33,8 +33,8 @@ class linear_power(core.cosmology):
         # set up the cosmo dict
         if cosmo_params is None and cosmo.is_empty():  
             print("Warning: No default cosmology has been specified, "
-                          "using Planck 2013 parameters.")
-            cosmo.unify(parameters.Planck13())
+                          "using %s parameters." %parameters.default()['name'])
+            cosmo.unify(parameters.default())
         elif cosmo_params is not None:
             self.set_current(cosmo_params)
             
@@ -60,6 +60,18 @@ class linear_power(core.cosmology):
         self._P0 = None
         
     #end __init__
+    
+    #---------------------------------------------------------------------------
+    @pytools.call_as_array
+    def growth_rate(self, z):
+        """
+        The growth rate, which is the logarithmic derivative of the growth 
+        factor with respect to scale factor. Fitting formula taken from 
+        E. V. Linder, Phys. Rev. D 72, 2005
+        """
+        gamma = 0.55 + 0.05*(1. + self.w(1.))
+        return self.omega_m_z(z)**gamma
+    #end growth_rate
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array
@@ -275,12 +287,11 @@ class linear_power(core.cosmology):
         #                           dx = dk/k
         # integrate using simpson's rule in log space: 
         #     Bessel func oscillations are better behaved
-        dx = numpy.log(k[1]) - numpy.log(k[0])
-        
-        integrand = k**2 * 0.5/ numpy.pi**2. * numpy.sin(k*r)*Pk / r 
+        dk = numpy.log(k[1]) - numpy.log(k[0])
+        integrand = k**2 * numpy.sin(k*r) * Pk 
 
-        return integrate.simps(integrand, dx=dx )
-    #end _Xi_r_integral
+        return integrate.simps(integrand, dx=dk)
+    #end _xi_r_integral
     
     #---------------------------------------------------------------------------
     def xi_r(self, r, z):
@@ -301,8 +312,28 @@ class linear_power(core.cosmology):
         I = self._xi_r_integral(r, k, Pk_0)
         fg = self.growth_factor(z)
         
-        return (fg)**2 * I 
-    #end Xi_r
+        return fg**2 * I * 0.5/ numpy.pi**2. / r 
+    #end xi_r
+    
+    #---------------------------------------------------------------------------
+    @pytools.call_item_by_item
+    def xi_avg_r(self, r, z, bins=50):
+        r"""
+        Uses the specified transfer function to define an approximation 
+        to the matter correlation function, at redshift z, averaged over
+        a sphere of radius r
+        
+        Units of r are assumed to be Mpc. See P_k documentaton for available 
+        transfer functions. 
+        """
+        def integrand(x):
+            return x**2*self.xi_r(x, z)
+            
+        rs = numpy.linspace(1e-5, r, bins)
+        I = integrate.simps(integrand(rs), x=rs)        
+
+        return 3 * I / r**3
+    #end xi_avg_r
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array

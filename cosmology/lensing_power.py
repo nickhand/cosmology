@@ -146,20 +146,20 @@ if __name__ == '__main__':
     # compute the power spectrum
     ell = np.arange(5, 1e4, 1)
     zlim = [0., 10.]
-    Pl = P_ell(ell, 1090., 
-                    nz_2 = n_z, 
+    Pl = P_ell(ell, 0.730, 1.542,   
                     zlim = zlim, 
                     Nz = 1000, 
                     cosmo_params='Planck13',
-                    pspec_kwargs = {'use_takahashi' : False})
+                    pspec_kwargs = {'use_takahashi' : False}, 
+                    linear = True)
     
     # plot the power spectrum
     pylab.loglog(ell, Pl)
     pylab.ylabel(r"$C_\ell$", fontsize=16)
     pylab.xlabel(r"$\ell$", fontsize=16)
     
-    filename = '/Users/Nick/research/analysis/ACT/lensing/analytic/data/clkapCMBkapGal04282013.dat' 
-    l, cl = np.loadtxt(filename, unpack=True, usecols=[0,1])
+    #filename = '/Users/Nick/research/analysis/ACT/lensing/analytic/data/clkapCMBkapCMB04282013.dat' 
+    #l, cl = np.loadtxt(filename, unpack=True, usecols=[0,1])
     
-    pylab.loglog(l,cl)
+    #pylab.loglog(l,cl)
     pylab.show()

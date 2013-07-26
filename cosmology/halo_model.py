@@ -15,7 +15,7 @@ import utils.physical_constants as pc
 
 class halo_model(core.cosmology):
     """
-    A class that implements various halo model relation quantities.
+    A class that implements various quantities related to the halo model.
     
     Notes
     -----
@@ -36,8 +36,8 @@ class halo_model(core.cosmology):
         # set up the cosmo dict
         if cosmo_params is None and cosmo.is_empty(): 
             print("Warning: No default cosmology has been specified, "
-                          "using Planck 2013 parameters.")
-            cosmo.unify(parameters.Planck13())
+                          "using %s parameters." %parameters.default()['name'])
+            cosmo.unify(parameters.default())
         elif cosmo_params is not None:
             self.set_current(cosmo_params)
             
@@ -45,7 +45,7 @@ class halo_model(core.cosmology):
         self._verify_params()
         self._set_extras()
         
-        self.growth = linear_growth.linear_growth(tf=tf)
+        self.growth = linear_growth.linear_power(tf=tf)
         self.fitting_func = fitting_func
     
     def halo_mass_function(self, logMassMin, logMassMax, z):
@@ -214,7 +214,7 @@ class halo_model(core.cosmology):
         deltaCritofz = 1.686 
         
         # compute the radii in Mpc corresponding to the masses
-        R = self.growth.mass_to_radius(mass)
+        R = self.growth.mass_to_radius(mass, z)
 
         # the variance of the mass perturbations on this scale R
         sigmaofz = self.growth.sigma_r(R, z) 
@@ -281,7 +281,7 @@ class halo_model(core.cosmology):
     #end r_s
     
     #---------------------------------------------------------------------------    
-    def rho_s(mass, z, **cosmo):
+    def rho_s(self, mass, z):
         """
         The scale density of a NFW profile in M_sun / Mpc^3, as computed
         from Yoshida et al (2001)

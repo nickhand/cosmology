@@ -51,8 +51,8 @@ class nonlinear_power(linear_growth.linear_power):
         # set up the cosmo dict
         if cosmo_params is None and cosmo.is_empty(): 
             print("Warning: No default cosmology has been specified, "
-                          "using Planck 2013 parameters.")
-            cosmo.unify(parameters.Planck13())
+                          "using %s parameters." %parameters.default()['name'])
+            cosmo.unify(parameters.default())
         elif cosmo_params is not None:
             self.set_current(cosmo_params)
             
@@ -294,10 +294,19 @@ class nonlinear_power(linear_growth.linear_power):
         Implement the Peacock & Dodds 1996 power spectrum. Because of the way 
         this is calculated, the user must supply the linear wave number, and a 
         tuple (rk_pd,pnl_pd) is returned. rk_pd is the nonlinear wave number 
-        associated with the input
-        linear wave number, and pnl_pd is the nonlinear power spectrum
-        associated with rk_pd.
+        associated with the input linear wave number, and pnl_pd is the 
+        nonlinear power spectrum associated with rk_pd.
+        
+        Notes
+        -----
+        Uses the EH CDM transfer function
         """
+        
+        # switch to EH CDM transfer function
+        old_tf = self.tf
+        tf = tf_eh.tf_eh(cosmo)
+        self.tf = tf.no_baryons
+        
         plin  = self.D2_L(klin)
         
         n_pd = self._n_cdm(klin)
@@ -306,6 +315,7 @@ class nonlinear_power(linear_growth.linear_power):
         
         k_pd = klin * (1. + pnl_pd)**(1./3.)
 
+        self.tf = old_tf
         return k_pd, pnl_pd
     #end D2_NL_PD96
     
@@ -338,7 +348,7 @@ class nonlinear_power(linear_growth.linear_power):
 if __name__ == '__main__':
     import pylab
 
-    z = 0.2
+    z = 0.
     
     PSpec = nonlinear_power(z=z, cosmo_params='Planck13')
 
@@ -355,7 +365,7 @@ if __name__ == '__main__':
 
     #calculate PD96 power law
     rk_lin = 10**( -2.0+4.0*np.linspace(0,1,N) )
-    rk_pd,pnl_pd = PSpec.D2_NL_PD96(rk_lin)
+    rk_pd, pnl_pd = PSpec.D2_NL_PD96(rk_lin)
        
     pylab.loglog(rk_pd, pnl_pd, '--k', label='PD96')
     
