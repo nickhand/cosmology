@@ -36,30 +36,87 @@ class linear_power(core.cosmology):
                           "using %s parameters." %parameters.default()['name'])
             cosmo.unify(parameters.default())
         elif cosmo_params is not None:
-            self.set_current(cosmo_params)
+            core.cosmology.set_current(self, cosmo_params)
             
         # verify and set params
         self._verify_params()
         self._set_extras()
         
+        self.tf_type = tf
+        self._set_transfer()
+        
+    #end __init__
+    
+    #---------------------------------------------------------------------------
+    def _set_transfer(self):
+        """
+        Set the transfer function parameters
+        """
         # setup the TF
-        if tf == 'BBKS':
+        if self.tf_type == 'BBKS':
             self.tf = self.T_BBKS
-        elif tf == 'EH_full':
+        elif self.tf_type == 'EH_full':
             tf = tf_eh.tf_eh(cosmo)
             self.tf = tf.full
-        elif tf == 'EH_no_wiggles':
+        elif self.tf_type == 'EH_no_wiggles':
             tf = tf_eh.tf_eh(cosmo)
             self.tf = tf.no_wiggles
-        elif tf == 'EH_no_baryons':
+        elif self.tf_type == 'EH_no_baryons':
             tf = tf_eh.tf_eh(cosmo)
             self.tf = tf.no_baryons
         else:
-            raise KeyError("keyword 'transfer = %s' not recognized" %transfer)
+            raise KeyError("keyword 'transfer = %s' not recognized" %self.tf_type)
         
         self._P0 = None
+    #end _set_transfer
+    
+    #-------------------------------------------------------------------------------
+    def set_current(self, cosmo_params):
+        """ 
+        Set the current cosmology.
+
+        Call this with an empty string ('') to get a list of the strings
+        that map to available pre-defined cosmologies.
+
+        Parameters
+        ----------
+        cosmo_params : str or dict 
+            the cosmology to use
+        """
+        if cosmo_params == "":
+             print("Valid cosmologies:\n%s" 
+                        %([x()['name'] for x in parameters.available]))
+             return
+             
+        if isinstance(cosmo_params, basestring):
+            _current = parameters.get_cosmology_from_string(cosmo_params)
+        elif isinstance(cosmo_params, dict):
+            _current = cosmo_params
+        else:
+            raise ValueError(
+                "Argument must be a string or dictionary. Valid strings:"
+                "\n%s" %parameters.available)
         
-    #end __init__
+        # make sure to remove omega_c_0 and omega_b_0 if omega_m_0 is 
+        # specified and they are not
+        keys = _current.keys()
+        if 'omega_m_0' in keys:
+            if 'omega_c_0' not in keys and 'omega_b_0' not in keys:
+                _current['omega_c_0'] = None
+                _current['omega_b_0'] = None
+
+        if 'name' not in keys or 'reference' not in keys:
+            _current['name'] = None
+            _current['reference'] = None
+        
+        cosmo.update(_current)
+        
+        # verify and set params
+        self._verify_params()
+        self._set_extras()
+        
+        self._set_transfer()
+    #end set_current
     
     #---------------------------------------------------------------------------
     @pytools.call_as_array
