@@ -28,7 +28,7 @@ class tf_eh(object):
         """
         Set the various parameters needed for the fitting
         """    
-        if 'omega_b_0' not in cosmo.keys(): cosmo.omega_b_0 = 0.0
+        if cosmo.get('omega_b_0', None) is None: cosmo.omega_b_0 = 1e-8
         
         self.p = {}
         
@@ -101,7 +101,7 @@ class tf_eh(object):
         This is the form given in Section 3 of Eisenstein & Hu (1998).
         k is the wavenumber at which to calculate transfer function, in Mpc^-1.
         """
-        if self.p['obhh'] <= 0.0:
+        if self.p['obhh'] <= 1e-8:
             raise ValueError("using transfer function that includes "+ \
                 "baryons without nonzero omega_b_0")
                 
@@ -141,7 +141,7 @@ class tf_eh(object):
         See equations 30 and 31 of Eisenstein & Hu (1998).
         k is the wavenumber at which to calculate transfer function, in Mpc^-1.
         """
-        if self.p['obhh'] <= 0.0:
+        if self.p['obhh'] <= 1e-8:
             raise ValueError("using transfer function that includes "+ \
                 "baryons without nonzero omega_b_0")
                 
