@@ -1,4 +1,4 @@
-__all__ = ['cosmology', 'linear_power', 'nonlinear_power', 'halo_model', 'cosmo']
+__all__ = ['cosmology', 'linear_power', 'nonlinear_power', 'halo_model', 'cosmo', 'halo_tools']
 
 from utils.param_dict import param_dict
 cosmo = param_dict()
