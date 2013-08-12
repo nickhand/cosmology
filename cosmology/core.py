@@ -433,7 +433,7 @@ class cosmology(s.with_sampleable_methods):
     def D_hor(self, z):
         """
         The horizon distance at redshift z in Mpc (eqn)
-        (physical dist that light can travel from z' = infty to z' = z)
+        (comoving dist that light can travel from z' = infty to z' = z)
         
         Parameters
         ----------
@@ -669,6 +669,8 @@ class cosmology(s.with_sampleable_methods):
         print "     (frac = %.4g)" %self._omega_gam_0
         print ''
         print "   radiation-matter equality at z = %.4g" %self._z_rm
+        print "   wavenumber at equality k_eq (1/Mpc): %.4g" \
+                    %( (pc.c_light/(pc.kilo*pc.meter))**(-1)*self.a(self._z_rm)*self.H(self._z_rm))
         print "   horizon distance at r-m equality:",
         print "%.4g Mpc" % self.D_hor(self._z_rm)
         print "   horizon distance today: %.4g Mpc" %self.D_hor(0)
