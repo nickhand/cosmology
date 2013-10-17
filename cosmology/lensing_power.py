@@ -31,7 +31,7 @@ def kernel(z, ni, zlim, c):
         return k
     else:
         Dm = c.Dm(z)
-        A = 1.5*cosmo.omega_m_0*c._H0**2*(1.+z)*Dm/(pc.c_light/pc.km)**2
+        A = 1.5*cosmo.omega_m_0*c._H0**2*(1.+z)*Dm/(pc.c_light/pc.km)/c.H(z)
         def integrand(z_s): 
             Dm_s = c.Dm(z_s)
             return ni(z_s)*(Dm_s - Dm)/Dm_s
@@ -135,7 +135,7 @@ def P_ell(ell,
         for i in range(Nz):
             bar.update(i+1)
             p = PSpec.P_k(k[i], z[i])
-            pspecs[i] = p * c.H(z[i]) / DA[i]**2
+            pspecs[i] = p * c.H(z[i]) / DA[i]**2 / (pc.c_light/pc.km)
     else:
         
         # setup multiprocessing
@@ -160,7 +160,7 @@ def P_ell(ell,
         # dequeue the results
         for result in master.dequeue():
             p, num = result
-            pspecs[num] = p / DA[num]**2  / c.H(z[num]) * (pc.c_light/pc.km)
+            pspecs[num] = p * c.H(z[num]) / DA[num]**2  / (pc.c_light/pc.km)
         
     # do the final integral over redshift
     kk = kern_arrays[0]*kern_arrays[1]

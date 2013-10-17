@@ -592,7 +592,7 @@ class cosmology(s.with_sampleable_methods):
         D_s = self.Dm(z_s)
         D = self.Dm(z)
         c = pc.c_light/pc.km
-        return 3./2./self.H(z)*(1+z)*cosmo.omega_m_0*self._H0**2*D*(D_s-D)/D_s/c
+        return 1.5*cosmo.omega_m_0*self._H0**2 * (1+z)/self.H(z)*D*(D_s-D)/D_s/c
     #end lens_kernel
     
     #---------------------------------------------------------------------------
