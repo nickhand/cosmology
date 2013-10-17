@@ -31,7 +31,7 @@
 import warnings, sys
 from utils import physical_constants as pc
 
-def Planck13_wBAO():
+def Planck13():
     """
     Planck 2013 DR1 + lensing + WMAP low ell polarization + highL ACT/SPT data
     (Table 5 of arXiv:1303.5076, best fit)
@@ -222,7 +222,7 @@ def Radiation_Dominated():
     return c
 #-------------------------------------------------------------------------------
 
-available = (Planck13, WMAP9, WMAP7, WMAP5, Matter_Dominated, Radiation_Dominated)
+available = (Planck13, Planck13_wBAO, WMAP9, WMAP7, WMAP5, Matter_Dominated, Radiation_Dominated)
 default = Planck13
 #-------------------------------------------------------------------------------
 def get_cosmology_from_string(arg):
