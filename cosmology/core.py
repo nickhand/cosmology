@@ -28,7 +28,8 @@ class cosmology(s.with_sampleable_methods):
                           'omega_b_0', 
                           'omega_m_0', 
                           'flat', 
-                          'omega_l_0', 
+                          'omega_l_0',
+                          'omega_r_0', 
                           'h', 
                           'n',
                           'Tcmb_0', 
@@ -104,6 +105,7 @@ class cosmology(s.with_sampleable_methods):
             if k is 'reference' or k is 'name': continue
             if k is 'omega_l_0':
                 if flat: continue
+            if k is 'omega_r_0': continue
             if k not in cosmo.keys():
                 used_default = True
                 cosmo[k] = self._default_params[k]
@@ -145,8 +147,12 @@ class cosmology(s.with_sampleable_methods):
             self._omega_gam_0 = 0.0
             self._omega_nu_0 = 0.0
         
-        self._omega_r_0 = self._omega_nu_0 + self._omega_gam_0
-
+        if 'omega_r_0' not in cosmo.keys():
+            self._omega_r_0 = self._omega_nu_0 + self._omega_gam_0
+            cosmo.omega_r_0 = self._omega_r_0
+        else:
+            self._omega_r_0 = cosmo.omega_r_0
+        
         # compute curvature density
         if cosmo.flat:
             cosmo.omega_l_0 = 1. - cosmo.omega_m_0 - self._omega_r_0
@@ -214,7 +220,7 @@ class cosmology(s.with_sampleable_methods):
             _current['name'] = None
             _current['reference'] = None
         
-        cosmo.update(_current)
+        cosmo.unify(_current)
         
         # verify and set params
         self._verify_params()
@@ -313,6 +319,21 @@ class cosmology(s.with_sampleable_methods):
     #end age
     
     #---------------------------------------------------------------------------
+    @pytools.call_as_array
+    def Hubble_law(self, z):
+        """
+        Compute the comoving distance using Hubble's law, v_rec = H_0 * d, 
+        where d is scale factor * comoving separation and z = v_rec/c.
+        
+        Parameters
+        ----------
+        z : float or numpy.ndarray
+            the redshift to compute the function at
+        """
+        return z*pc.c_light/(pc.kilo*pc.meter)*(1+z)/self._H0
+    #end Hubble_law
+    
+    #---------------------------------------------------------------------------
     @pytools.call_item_by_item
     def Dc(self, z):
         """
@@ -333,17 +354,17 @@ class cosmology(s.with_sampleable_methods):
     #end Dc
     
     #---------------------------------------------------------------------------
-    @pytools.call_as_array
+    #@pytools.call_as_array
     def Dp(self, z):
         """
-        The proper or physical distance
+        The proper or physical distance, in Mpc
         
         Parameters
         ----------
         z : float or numpy.ndarray
             the redshift to compute the function at
         """
-        return self.Dc(z)/(1.+z)
+        return self.Dc(z) / (1+z)
     #end Dp
     
     #---------------------------------------------------------------------------
@@ -559,7 +580,7 @@ class cosmology(s.with_sampleable_methods):
         The value of the CMB lensing kernel at a redshift z, assuming a flat
         universe
         
-        units are strange: km / s
+        quantity is unitless
         
         Parameters
         ----------
@@ -570,8 +591,8 @@ class cosmology(s.with_sampleable_methods):
         """
         D_s = self.Dm(z_s)
         D = self.Dm(z)
-
-        return 3./2./self.H(z)*(1+z)*cosmo.omega_m_0*self._H0**2*D*(D_s-D)/D_s
+        c = pc.c_light/pc.km
+        return 3./2./self.H(z)*(1+z)*cosmo.omega_m_0*self._H0**2*D*(D_s-D)/D_s/c
     #end lens_kernel
     
     #---------------------------------------------------------------------------
@@ -661,7 +682,7 @@ class cosmology(s.with_sampleable_methods):
         print "Cosmology: "
         print "   Omega_m = %.4g" % cosmo.omega_m_0
         print "   Omega_l = %.4g" % cosmo.omega_l_0
-        print "   Omega_r = %.4g" % self._omega_r_0
+        print "   Omega_r = %.4g" % cosmo.omega_r_0
         print "   H0      = %.4g km/s/Mpc" %self._H0
         print "   Dh      = %.4g Mpc" %self._hubble_distance
         print "   e_crit  = %.4g erg/cm^3" % self.e_crit(0)
