@@ -165,7 +165,7 @@ def P_ell(ell,
     # do the final integral over redshift
     kk = kern_arrays[0]*kern_arrays[1]
     integrand = pspecs.copy()*kk[:,None]/(pc.c_light/pc.km)
-    ret = [integrate.simps(z*integrand[:,i], x=np.log(z)) for i, l in enumerate(ell)]a
+    ret = [integrate.simps(z*integrand[:,i], x=np.log(z)) for i, l in enumerate(ell)]
     return ret
 #end P_ell
 
