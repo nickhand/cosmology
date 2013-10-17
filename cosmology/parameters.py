@@ -31,9 +31,37 @@
 import warnings, sys
 from utils import physical_constants as pc
 
-def Planck13():
+def Planck13_wBAO():
     """
-    Planck 2013 DR1 + WMAP low ell polarization + highL ACT/SPT data + BAO
+    Planck 2013 DR1 + lensing + WMAP low ell polarization + highL ACT/SPT data
+    (Table 5 of arXiv:1303.5076, best fit)
+    """ 
+    c = {
+            'omega_c_0' : 0.25666,
+            'omega_b_0' : 0.048093, 
+            'omega_m_0' : 0.30475, 
+            'h' : 0.6794,
+            'n' : 0.9624,
+            'sigma_8' : 0.8271,
+            'tau' : 0.0943, 
+            'z_reion' : 11.42,
+            'z_star' : 1090., 
+            't0' : 13.7914,
+            'Tcmb_0' : 2.72528,
+            'Neff' : 3.046, 
+            'flat' : True, 
+            'w0' : -1. ,
+            'w1' : 0., 
+            'reference' : "Planck Collaboration 2013, Paper XVI, " + \
+                          "arXiv:1303.5076 Table 5 " + \
+                          "(Planck + lensing + WP + highL)", 
+            'name': 'Planck13'}
+            
+    return c
+
+def Planck13_wBAO():
+    """
+    Planck 2013 DR1 + WMAP low ell polarization + highL ACT/SPT data
     (Table 5 of arXiv:1303.5076, best fit)
     """ 
     c = {
@@ -54,7 +82,7 @@ def Planck13():
             'w1' : 0., 
             'reference' : "Planck Collaboration 2013, Paper XVI, " + \
                           "arXiv:1303.5076 Table 5 " + \
-                          "(Planck + WP + lensing + highL + BAO)", 
+                          "(Planck + WP + highL + BAO)", 
             'name': 'Planck13'}
             
     return c
