@@ -10,7 +10,7 @@
 """
 import numpy as np
 from scipy import special, optimize
-from cosmology import cosmo, linear_growth, parameters, tf_eh
+from cosmology import cosmo, core, linear_growth, parameters, tf_eh
 
 class nonlinear_power(linear_growth.linear_power):
     """
@@ -54,7 +54,7 @@ class nonlinear_power(linear_growth.linear_power):
                           "using %s parameters." %parameters.default()['name'])
             cosmo.unify(parameters.default())
         elif cosmo_params is not None:
-            self.set_current(cosmo_params)
+            core.cosmology.set_current(self, cosmo_params)
             
         # verify and set params
         self._verify_params()
@@ -348,9 +348,9 @@ class nonlinear_power(linear_growth.linear_power):
 if __name__ == '__main__':
     import pylab
 
-    z = 0.
+    z = 0.2
     
-    PSpec = nonlinear_power(z=z, cosmo_params='Planck13')
+    PSpec = nonlinear_power(z=z, cosmo_params='Planck13', tf='EH_no_baryons')
 
     # calculate S03 power law
     N = 1000
@@ -358,16 +358,16 @@ if __name__ == '__main__':
 
     pnl, pq, ph, plin = PSpec.D2_NL(rk,return_components = True)
     
-    pylab.loglog(rk, pnl, '-k', label='nonlinear')
-    pylab.loglog(rk, pq, ':k', label='quasi-linear')
-    pylab.loglog(rk, ph, ':r',label='halo')
-    pylab.loglog(rk, plin, '--r',label='linear')
+    pylab.loglog(rk/cosmo.h, pnl, '-k', label='nonlinear')
+    pylab.loglog(rk/cosmo.h, pq, ':k', label='quasi-linear')
+    pylab.loglog(rk/cosmo.h, ph, ':r',label='halo')
+    pylab.loglog(rk/cosmo.h, plin, '--r',label='linear')
 
     #calculate PD96 power law
     rk_lin = 10**( -2.0+4.0*np.linspace(0,1,N) )
     rk_pd, pnl_pd = PSpec.D2_NL_PD96(rk_lin)
        
-    pylab.loglog(rk_pd, pnl_pd, '--k', label='PD96')
+    pylab.loglog(rk_pd/cosmo.h, pnl_pd, '--k', label='PD96')
     
     pylab.ylim(10**-1.5,3E3)
     pylab.xlim(10**-1.5,1E2)

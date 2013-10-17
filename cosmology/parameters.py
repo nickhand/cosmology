@@ -29,6 +29,7 @@
  creation date: 05/01/2013
 """
 import warnings, sys
+from utils import physical_constants as pc
 
 def Planck13():
     """
@@ -139,8 +140,61 @@ def WMAP5():
             'name': 'WMAP5'}
     return c
 #-------------------------------------------------------------------------------
+def Matter_Dominated():
+    """
+    A flat, matter-dominated universe, using Planck 13 parameters for 
+    ancilliary parameters
+    """
+    c = {
+            'omega_c_0' : 0.,
+            'omega_b_0' : 0., 
+            'omega_m_0' : 1.0,
+            'omega_r_0' : 0.,  
+            'h' : 0.6777,
+            'n' : 0.9611,
+            'sigma_8' : 0.8288,
+            'tau' : 0.0952, 
+            'z_reion' : 11.52,
+            'z_star' : 1090., 
+            't0' : 13.7965,
+            'Tcmb_0' : 0.,
+            'Neff' : 3.046, 
+            'flat' : True, 
+            'w0' : -1. ,
+            'w1' : 0.,  
+            'name': 'Matter-Dominated'}
+            
+    return c
+#-------------------------------------------------------------------------------
+def Radiation_Dominated():
+    """
+    A flat, matter-dominated universe, using Planck 13 parameters for 
+    ancilliary parameters
+    """
+    c = {
+            'omega_c_0' : 0.,
+            'omega_b_0' : 0., 
+            'omega_m_0' : 0.,
+            'omega_l_0' : 0.,
+            'omega_r_0' : 1.0, 
+            'h' : 0.6777,
+            'n' : 0.9611,
+            'sigma_8' : 0.8288,
+            'tau' : 0.0952, 
+            'z_reion' : 11.52,
+            'z_star' : 1090., 
+            't0' : 13.7965,
+            'Tcmb_0' : 2.72528,
+            'Neff' : 3.046, 
+            'flat' : True, 
+            'w0' : -1. ,
+            'w1' : 0.,  
+            'name': 'Radiation-Dominated'}
+            
+    return c
+#-------------------------------------------------------------------------------
 
-available = (Planck13, WMAP9, WMAP7, WMAP5)
+available = (Planck13, WMAP9, WMAP7, WMAP5, Matter_Dominated, Radiation_Dominated)
 default = Planck13
 #-------------------------------------------------------------------------------
 def get_cosmology_from_string(arg):
@@ -155,5 +209,49 @@ def get_cosmology_from_string(arg):
                 arg, [x()['name'] for x in available])
         raise ValueError(s)
     return cosmo_dict
+    
 #-------------------------------------------------------------------------------
+def convert_to_cosmolopy_dict(cosmo_params):
+    out = {}
+    out['N_nu'] = cosmo_params['Neff']
+    out['Y_He'] = 0.24
+    out['h'] = cosmo_params['h']
+    out['n'] = cosmo_params['n']
+    out['omega_M_0'] = cosmo_params['omega_m_0']
+    out['omega_b_0'] = cosmo_params['omega_b_0']
+    
+    if cosmo_params['Tcmb_0'] > 0:
+        
+        # Compute photon density from Tcmb
+        _constant = pc.a_rad / pc.c_light**2
+        rho_crit0 = 8.62739108435017e-30
+        omega_gam_0 =  _constant*cosmo_params['Tcmb_0']**4 / rho_crit0
 
+        # compute neutrino omega
+        # The constant in front is 7/8 (4/11)^4/3 -- see any
+        #  cosmology book for an explanation; the 7/8 is FD vs. BE
+        #  statistics, the 4/11 is the temperature effect
+        omega_nu_0 = 0.2271073 * cosmo_params['Neff'] * omega_gam_0
+    else:
+        omega_gam_0 = 0.0
+        omega_nu_0 = 0.0
+    
+    if 'omega_r_0' not in cosmo_params.keys():
+        omega_r_0 = omega_nu_0 + omega_gam_0
+    else:
+        omega_r_0 = cosmo_params['omega_r_0']
+    
+    # compute curvature density
+    if cosmo_params.get('flat', False):
+        out['omega_lambda_0'] = 1. - out['omega_M_0'] - omega_r_0
+        out['omega_k_0'] = 0.
+    else:
+        out['omega_k_0'] = 1. - out['omega_M_0'] - out['omega_lambda_0'] - omega_r_0
+    
+    out['omega_n_0'] = omega_nu_0
+    out['sigma_8'] = cosmo_params['sigma_8']
+    out['t_0'] = cosmo_params['t0']
+    out['tau'] = cosmo_params['tau']
+    out['z_reion'] = cosmo_params['z_reion']
+    
+    return out
