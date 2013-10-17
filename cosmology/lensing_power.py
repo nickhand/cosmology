@@ -160,7 +160,7 @@ def P_ell(ell,
         # dequeue the results
         for result in master.dequeue():
             p, num = result
-            pspecs[num] = p / DA[num]**2
+            pspecs[num] = p / DA[num]**2  / c.H(z[num]) * (pc.c_light/pc.km)
         
     # do the final integral over redshift
     kk = kern_arrays[0]*kern_arrays[1]
