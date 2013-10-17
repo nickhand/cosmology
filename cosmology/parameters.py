@@ -90,27 +90,27 @@ def Planck13_wBAO():
 #-------------------------------------------------------------------------------
 def WMAP9():
     """
-    WMAP9 + eCMB + BAO + H0 parameters from Hinshaw et al. 2012
-    arxiv:1212.5226, (Table 4, last column)
+    WMAP9 + eCMB parameters from Hinshaw et al. 2012
+    arxiv:1212.5226v3, (Table 4, last column)
     """
     c = {
-            'omega_c_0' : 0.2402,
-            'omega_b_0' : 0.04628, 
-            'omega_m_0' : 0.2865, 
-            'h' : 0.6932,
-            'n' : 0.9608,
-            'sigma_8' : 0.820,
-            'tau' : 0.081, 
-            'z_reion' : 10.1,
+            'omega_c_0' : 0.227,
+            'omega_b_0' : 0.0449, 
+            'omega_m_0' : 0.2719, 
+            'h' : 0.705,
+            'n' : 0.9646,
+            'sigma_8' : 0.810,
+            'tau' : 0.084, 
+            'z_reion' : 10.3,
             'z_star' : 1091.,
-            't0' : 13.772,
+            't0' : 13.742,
             'Tcmb_0' : 2.72528,
             'Neff' : 3.046, 
             'flat' : True,
             'w0' : -1. ,
             'w1' : 0., 
             'reference' : "Hinshaw et al. 2012, arXiv 1212.5226." + \
-                             " Table 4 (WMAP + eCMB + BAO + H0)", 
+                             " Table 4 (WMAP + eCMB)", 
             'name': 'WMAP9'}
 
     return c

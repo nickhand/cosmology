@@ -31,7 +31,7 @@ def kernel(z, ni, zlim, c):
         return k
     else:
         Dm = c.Dm(z)
-        A = 1.5*cosmo.omega_m_0*c._H0**2*(1.+z)*Dm/c.H(z)/(pc.c_light/pc.km)
+        A = 1.5*cosmo.omega_m_0*c._H0**2*(1.+z)*Dm/(pc.c_light/pc.km)**2
         def integrand(z_s): 
             Dm_s = c.Dm(z_s)
             return ni(z_s)*(Dm_s - Dm)/Dm_s
@@ -160,11 +160,11 @@ def P_ell(ell,
         # dequeue the results
         for result in master.dequeue():
             p, num = result
-            pspecs[num] = p * c.H(z[num]) / DA[num]**2
+            pspecs[num] = p / DA[num]**2
         
     # do the final integral over redshift
     kk = kern_arrays[0]*kern_arrays[1]
-    integrand = pspecs.copy()*kk[:,None]/(pc.c_light/pc.km)
+    integrand = pspecs.copy()*kk[:,None]
     ret = [integrate.simps(z*integrand[:,i], x=np.log(z)) for i, l in enumerate(ell)]
     return ret
 #end P_ell
