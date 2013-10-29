@@ -190,7 +190,7 @@ def Matter_Dominated():
             'flat' : True, 
             'w0' : -1. ,
             'w1' : 0.,  
-            'name': 'Matter-Dominated'}
+            'name': 'Matter_Dominated'}
             
     return c
 #-------------------------------------------------------------------------------
@@ -217,13 +217,13 @@ def Radiation_Dominated():
             'flat' : True, 
             'w0' : -1. ,
             'w1' : 0.,  
-            'name': 'Radiation-Dominated'}
+            'name': 'Radiation_Dominated'}
             
     return c
 #-------------------------------------------------------------------------------
 
 available = (Planck13, Planck13_wBAO, WMAP9, WMAP7, WMAP5, Matter_Dominated, Radiation_Dominated)
-default = Planck13
+default = WMAP9
 #-------------------------------------------------------------------------------
 def get_cosmology_from_string(arg):
     """ 

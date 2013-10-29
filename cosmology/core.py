@@ -44,7 +44,7 @@ class cosmology(s.with_sampleable_methods):
                           'name', 
                           'reference']
                           
-    _default_params = parameters.Planck13()
+    _default_params = parameters.WMAP9()
                           
     def __init__(self, cosmo_params=None):
         """
