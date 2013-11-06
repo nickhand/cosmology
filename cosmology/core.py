@@ -113,7 +113,7 @@ class cosmology(s.with_sampleable_methods):
         # print a warning
         if used_default:
             print("Warning: Missing cosmology parameters, "
-                          "using Planck 2013 parameters for these.")
+                          "using %s parameters for these." %parameters.default()['name'])
                           
     #end _verify_params      
         
