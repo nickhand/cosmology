@@ -38,7 +38,6 @@ def kernel(z, ni, zlim, c):
         I = integrate.quad(integrand, z, zlim[1])
         return A*I[0]
 #end kernel
-
 #-------------------------------------------------------------------------------
 def P_ell(ell, 
           nz_1, 
@@ -51,6 +50,54 @@ def P_ell(ell,
           nprocs = 1):
     """
     The lensing power spectrum, assuming flat universe
+    
+    Parameters
+    -----------
+    ell : numpy.ndarray
+        the array of multipole numbers to evaluate the power spectrum at
+    nz_1 : function or str 
+        function giving the 1st redshift distribution or float representing 
+        a delta function at that redshift.
+    nz_2 : function or float, optional
+        function giving the 2nd redshift distribution or float representing 
+        a delta function at that redshift. Equals nz_1 if None.
+    zlim : list, optional
+        list giving the nonzero range of the functions nz_1 and nz_2, 
+        for efficiency.
+    Nz : int, optional
+        the number of redshift bins to use
+    cosmo_params : dict, str or cosmology instance, optional
+        the cosmology to use
+    linear : bool, optional
+        whether to use the linear power spectrum
+    pspec_kwargs : dict, optional
+        the keyword arguments to pass to the halofit.nonlinear_power() class
+    nprocs : int, optional
+        the number of processors to use in the power spectra calculations, 
+        default is one
+
+    Returns
+    -------
+    ret : numpy.ndarray 
+        the spectrum corresponding to the input ell values
+    """
+    z, integrand = P_ell_integrand(ell, nz_1, nz_2, zlim, Nz, cosmo_params, linear, pspec_kwargs, nprocs)
+    ret = [integrate.simps(z*integrand[:,i], x=np.log(z)) for i, l in enumerate(ell)]
+    return ret
+#end P_ell
+
+#-------------------------------------------------------------------------------
+def P_ell_integrand(ell, 
+          nz_1, 
+          nz_2 = None, 
+          zlim = [0, 10.], 
+          Nz = 1000, 
+          cosmo_params = None, 
+          linear = False, 
+          pspec_kwargs = {},
+          nprocs = 1):
+    """
+    The integrand of the lensing power spectrum, assuming flat universe
     
     Parameters
     -----------
@@ -165,9 +212,8 @@ def P_ell(ell,
     # do the final integral over redshift
     kk = kern_arrays[0]*kern_arrays[1]
     integrand = pspecs.copy()*kk[:,None]
-    ret = [integrate.simps(z*integrand[:,i], x=np.log(z)) for i, l in enumerate(ell)]
-    return ret
-#end P_ell
+    return z, integrand
+#end P_ell_integrand
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
