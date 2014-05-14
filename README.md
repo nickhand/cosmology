@@ -1,4 +1,6 @@
 cosmology
 =======
 
-basic package for cosmological calculations, including linear and nonlinear power spectrum and quantities that evolve in redshift
+Algorithms to compute various cosmological quantities, including quantities
+that evolve with redshift, linear and nonlinear power spectra, and 
+halo model quantities.
