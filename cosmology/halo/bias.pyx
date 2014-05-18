@@ -6,6 +6,20 @@ import numpy as np
 available_bias = ['Tinker', 'PS', 'SMT']
 
 #-------------------------------------------------------------------------------
+def bias_of_mass(mf, bias_model):
+    """
+    Compute the bias as a function of mass, as specified by the mass functions
+    mass array.
+    """
+    if bias_model not in available_bias:
+        raise ValueError("%s is an invalid bias model. Must be one %s" \
+                            %(bias_model, available_bias))
+    bias_args = (mf.delta_halo,) if bias_model == "Tinker" else ()
+    bias_func = globals()['bias_%s' %bias_model]
+    b = bias_func(mf.sigma, mf.delta_c, *bias_args)
+    
+    return b
+#-------------------------------------------------------------------------------
 def average_halo_bias(k, mf, bias_model, bias_power=1, mass_cut=None):
     """
     Compute the average halo bias corresponding to a given wavenumber, by 

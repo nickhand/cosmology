@@ -30,7 +30,7 @@ def configuration(parent_package='', top_path=None):
                          extra_compile_args=['-O3', '-w'],
                          extra_link_args=['-g'])
     
-    config.add_extension('correlation', sources=['correlation.c', 'power_tools.c'],
+    config.add_extension('correlation', sources=['correlation.c', 'power_tools.c', 'transfer.c'],
                          include_dirs=[get_numpy_include_dirs(), get_cython_include_dir(), ''],
                          libraries=get_libraries(), library_dirs=[get_library_dir()],
                          extra_compile_args=['-O3', '-w'],
