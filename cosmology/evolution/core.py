@@ -355,7 +355,7 @@ def angular_size(z, diameter, params=default_params):
         the cosmological parameters to use. Default is set by 
         the value of ``parameters.default_params``
     """
-    return (diameter*c.degree) / Da(z, params=params)
+    return (diameter / Da(z, params=params)) / c.degree
 #end angular_size
 
 #-------------------------------------------------------------------------------
