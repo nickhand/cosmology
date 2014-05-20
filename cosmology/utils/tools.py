@@ -1,5 +1,6 @@
 import numpy as np
 from contextlib import contextmanager
+from . import constants as const
 
 #-------------------------------------------------------------------------------
 def vectorize(x):
@@ -32,3 +33,27 @@ def ignored(*exceptions):
     except exceptions:
         pass
 #end ignored
+
+#-------------------------------------------------------------------------------
+def f_sz(nu):
+    """
+    The frequency dependence of the thermal SZ effect
+    
+    Parameters
+    ----------
+    nu : {float, array_like}
+        the frequency in GHz
+    """
+    x = const.h_planck*nu*const.giga / (const.k_b*const.T_cmb)
+    return x*(np.exp(x) + 1.) / (np.exp(x) - 1.) - 4.
+#end f_sz
+
+#-------------------------------------------------------------------------------
+def fourier_top_hat(x):
+    """
+    A top hat filter in Fourier space
+    """
+    return 3.*(np.sin(x) - x*np.cos(x)) / x**3
+#end fourier_top_hat
+
+#-------------------------------------------------------------------------------

@@ -41,7 +41,7 @@ def mean_density(z, params=default_params, cgs=False):
     -----
     This is given by: 
     
-    ..math: \bar{\rho}_m(z) = \Omega_m(z) * \rho_{crit}(z) = \bar{}\rho_m(0) * (1+z)^3
+    ..math: \bar{\rho}_m(z) = \Omega_m(z) * \rho_{crit}(z) = \bar{\rho}_m(0) * (1+z)^3
     
     Parameters
     ----------

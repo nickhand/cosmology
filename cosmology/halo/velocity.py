@@ -1,11 +1,108 @@
 from . import bias
 from ..parameters import Cosmology, default_params
-from ..evolution import H, mass_to_radius
-from ..growth import growth_rate, Correlation
+from ..evolution import H, mean_density, mass_to_radius
+from ..growth import growth_rate, Correlation, Power, growth_function
 from ..utils import tools
 
 import scipy.integrate as integ
+from scipy.interpolate import InterpolatedUnivariateSpline as spline
 import numpy as np
+
+#-------------------------------------------------------------------------------
+def linear_vel_dispersion(z, M=None, power_kwargs={'transfer_fit' : 'CAMB'}, 
+                            params=default_params):
+    """
+    Compute the velocity dispersion [units: km/s] along the line-of-sight 
+    in linear theory.
+    
+    Notes
+    -----
+    This is given by: 
+    
+    ..math: \sigma_v^2(z, M) = \frac{1}{3} (f H(z) / (1+z))^2 \int k^2 P(k, z) W^2[k R(M)] dk
+    
+    where W is a top-hat filter in real-space
+    
+    Parameters
+    ----------
+    z : {float, array_like}
+        The redshift to compute the quantity at
+    M : {float, array_like}, optional
+        If not `None`, the quantity is computed using a smoothing scale `R` 
+        corresponding to the input mass. If `None`, no smoothing filter is applied
+        [units :math: `M_\odot h^{-1}`]
+    power_kwargs : dict, optional
+        The keyword arguments to pass to the `Power` instance    
+    params : {str, dict, Cosmology}, optional
+        The cosmological parameters to use. Default is set by the value     
+        of ``parameters.default_params``
+        
+    Returns
+    -------
+    sigma : np.ndarray
+        The velocity dispersion in km/s
+    """
+    if not isinstance(params, Cosmology):
+        params = Cosmology(params)
+    
+    # vectorize the inputs
+    z = tools.vectorize(z)
+    if M is not None: M = tools.vectorize(M)
+    
+    if len(z) > 1 and (M != None and len(M) > 1):
+        raise ValueError("Cannot compute velocity dispersion for multiple masses and redshifts at once.")
+        
+    # need conformal Hubble and growth rate
+    conformalH = H(z, params=params) / (1+z)
+    f = growth_rate(z, params=params)
+    D = growth_function(z, params=params)
+    
+    # initialize the linear power spectrum
+    klin = np.logspace(-5, 2, 10000)
+    Plin = Power(k=klin, z=0., cosmo=params, **power_kwargs) 
+    power_spline = spline(klin, Plin.power)
+    
+    # compute the smoothing radius
+    if M is not None:
+        rho_mean = mean_density(0., params=params)
+        smoothing_radii = mass_to_radius(M, rho_mean)
+        
+    def integrand(q, R):
+        return tools.fourier_top_hat(q*R)**2 * power_spline(q)
+    
+    sigmas = []
+    
+    # the cosmo norm factor
+    norm = (f*conformalH*D/params.h)
+    
+    # compute sigma for several masses
+    if M != None and len(M) > 1:
+
+        # loop over each smoothing radii
+        for R in smoothing_radii: 
+            integral = integ.quad(integrand, 1e-5, 100., limit=1000, args=(R,))[0] / (2.*np.pi**2)
+            sig_sq = 1./3 * integral  
+
+            sigmas.append(np.sqrt(sig_sq))
+    
+        return np.array(sigmas) * norm
+    else:
+        
+        # define the integrand to use
+        if M != None:
+
+            integrand = lambda q: tools.fourier_top_hat(q*smoothing_radii[0])**2 * power_spline(q)
+        else:
+            integrand = lambda q: power_spline(q)
+    
+        # compute the integral
+        integral = integ.quad(integrand, 1e-5, 100., limit=1000)[0] / (2.*np.pi**2)
+        sig_sq = 1./3 * integral 
+        
+        return np.sqrt(sig_sq) * norm
+                
+#------------------------------------------------------------------------------- 
+    
 
 #-------------------------------------------------------------------------------
 def pairwise_velocity(R, z, bias=1., corr_kwargs={}, params=default_params):
