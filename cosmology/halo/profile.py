@@ -1,9 +1,11 @@
 import numpy as np
 import scipy.integrate as integ
+from scipy.misc import derivative
+from scipy.interpolate import InterpolatedUnivariateSpline
 
 from ..parameters import Cosmology, default_params
 from . import convert_halo_mass, convert_halo_radius, concentration, nfw_rs, nfw_rhos, virial_overdensity
-from ..utils import constants as const, tools
+from ..utils import constants as const, tools, functionator as fn
 from ..evolution import critical_density, Da
 
 #-------------------------------------------------------------------------------
@@ -772,5 +774,105 @@ class HaloProfile(object):
         dT = -self.optical_depth(thetas) * v_c * (const.T_cmb / const.micro) 
         
         return dT
-    #---------------------------------------------------------------------------   
+    #---------------------------------------------------------------------------
+    def optical_depth_FT(self, ell):    
+        """
+        Compute the Foruier transform of the 2D Thomson optical depth profile 
+        [units: None] as a function of multipole `\ell`, the Fourier analog
+        of the angular radius `\theta`.
+
+        Parameters
+        ----------
+        ell : {float, array_like}
+            The Fourier multipoles to compute the transform at [units: None]
         
+        Returns
+        -------
+        tau_ft : array_like
+            The Fourier transform of the 2D optical depth profile as function of 
+            multipole, including the values for negative frequencies in the 
+            style of numpy.fft
+        """  
+        # first compute the real space profile
+        min_theta = 0.
+        max_theta = 60.
+        dtheta = 0.05
+
+        thetas = np.arange(min_theta, max_theta, dtheta)
+        tau = self.optical_depth(thetas) 
+        tau0 = self.optical_depth(0.)
+        
+        return self._fourier_transform(ell, thetas, tau, tau0)
+    #---------------------------------------------------------------------------
+    def comptonY_2D_FT(self, ell):    
+        """
+        Compute the 2D Compton Y profile [units: None] as a function of 
+        multipole `\ell`, the Fourier analog of the angular radius `\theta`.
+
+        Parameters
+        ----------
+        ell : {float, array_like}
+            The Fourier multipoles to compute the transform at [units: None]
+        
+        Returns
+        -------
+        y_ft : array_like
+            The Fourier transform of the 2D compton y profile as function of 
+            multipole, including the values for negative frequencies in the 
+            style of numpy.fft
+        """  
+        # first compute the real space profile
+        min_theta = 0.
+        max_theta = 60.
+        dtheta = 0.05
+
+        thetas = np.arange(min_theta, max_theta, dtheta)
+        y = self.comptonY_2D(thetas) 
+        y0 = self.comptonY_2D(0.)
+        
+        return self._fourier_transform(ell, thetas, y, y0)
+    #---------------------------------------------------------------------------
+    def _fourier_transform(self, ell, theta, y, y0):
+        """
+        Fourier transform the real-space profile
+        """  
+        # make the full real space profile for FFT 
+        y_mirror = y[1:][::-1]
+        y_full = np.append(y, y_mirror)
+        
+        # compute the FFT
+        Pl = np.fft.fft(y_full).real
+        l = 2*np.pi*np.fft.fftfreq(len(y_full), d=(theta[1]-theta[0])*const.arcminute)
+        
+        # keep only the positive ell values
+        inds = np.where(l >= 0)
+        Pl = Pl[inds]
+        l = l[inds]
+        
+        # ell value of 0.5 * theta_scale
+        ell0 = 2.*np.pi/(0.2*self.scale_radius/self.Da)
+        
+        logspline = InterpolatedUnivariateSpline(l, np.log(Pl.real))
+        slope = derivative(logspline, ell0, dx=1e-3)*ell0
+
+        # now compute the combined model
+        model_spline = InterpolatedUnivariateSpline(l, Pl.real) 
+        
+        # make the final array
+        Pl_final = ell.copy()*0.
+        
+        inds = (ell <= ell0)
+        Pl_final[inds] = model_spline(ell[inds])
+        Pl_final[~inds] = model_spline(ell0)*(ell[~inds]/ell0)**slope
+        
+        # set up the mirror for negative frequencies in numpy.fft style
+        Pl_mirror = Pl_final[1:][::-1]
+        Pl_final = np.append(Pl_final, Pl_mirror)
+        
+        # now properly normalize so we ifft and recover the correct central value
+        # DC value is sum(FT) / len(FT)
+        norm = y0/(np.sum(Pl_final)/len(Pl_final))
+        Pl_final = norm*Pl_final
+        
+        return Pl_final
+    #---------------------------------------------------------------------------

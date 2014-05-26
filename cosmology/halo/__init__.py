@@ -19,4 +19,5 @@ __all__ = ['virial_overdensity',
            'sigma_v2',
            'sigma_evrard',
            'pairwise_velocity',
-           'HaloProfile']
+           'HaloProfile',
+           'linear_vel_dispersion']
