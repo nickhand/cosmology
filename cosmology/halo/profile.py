@@ -74,7 +74,7 @@ class HaloProfile(object):
         self._z = val
         
         if hasattr(self, 'mass'):
-            self.update(self.mass, self.mass_definition, self.mass_delta)
+            self.update_mass(self.mass, self.mass_definition, self.mass_delta)
         
         del self.delta_c, self.Da
     #---------------------------------------------------------------------------
@@ -615,7 +615,7 @@ class HaloProfile(object):
     #---------------------------------------------------------------------------
     def comptonY_3D(self, R):
         """
-        Compute the 3D Compton Y profile [units :math: h^2 Mpc^{-1}] at the 3D radius `R`
+        Compute the 3D Compton Y profile [units :math: Mpc^{-1}] at the 3D radius `R`
         [units :math: `Mpc h^{-1}`], using the pressure profile specified 
         by `self.pressure_fit`
         
@@ -637,84 +637,82 @@ class HaloProfile(object):
         Returns
         -------
         y3D : {float, array_like}
-            The compton Y profile at `R` [units :math: h^2 Mpc^{-1}]
+            The compton Y profile at `R` [units :math: Mpc^{-1}]
         """
         prefactor = const.sigma_T / (const.m_e * const.c_light**2 / const.eV)
         y3D = prefactor * 2.*(1 + self.X)/(3. + 5.*self.X) * self.gas_pressure(R)
         
-        return y3D * const.Mpc
+        return y3D * const.Mpc * self.cosmo.h**2
     #---------------------------------------------------------------------------
-    def comptonY_2D(self, thetas):
+    def comptonY_2D(self, R_proj):
         """
         Compute the 2D Compton Y profile [units: None] as a function of 
-        angle `\theta`, which is the angular distance from the halo center 
-        in the plane of the sky, by integrating over the line-of-sight through
-        the halo.
+        the projected distance in the plane of the sky, also known as the impact
+        parameter.
         
         Notes
         -----
         The 2D Compton Y profile is given by: 
         
-        ..math: y_{2D}(\theta) = \int_0^\infty y_{2D}(\sqrt(l^2 + D_A^2 \theta^2)) dl
+        ..math: y_{2D}(R_proj) = \int_0^\infty y_{2D}(\sqrt(l^2 + R_proj^2)) dl
 
         Parameters
         ----------
-        thetas : {float, array_like}
-            The 2D angular distance from the halo center [units: arcminutes]
+        R_proj : {float, array_like}
+            The projected distance from the halo center [units: Mpc]
         
         Returns
         -------
         y2D : {float, array_like}
             The 2D Compton Y profile [units: None]
         """
-        this_Da = self.Da
+        # really should be infinity, but this works well enough
+        R_proj_max = 5.*self.virial_radius 
         
         # set up the cylindrical integral for each theta value
-        integrand = lambda l, th: 2.*self.comptonY_3D(np.sqrt(l**2 + (this_Da*th)**2))
-        cyc_integral = np.vectorize(lambda this_theta: integ.quad(integrand, 0., \
-                                        5.*self.virial_radius, args=(this_theta,))[0])
+        integrand = lambda l, b: 2.*self.comptonY_3D(np.sqrt(l**2 + b**2))
+        cyc_integral = np.vectorize(lambda thisb: integ.quad(integrand, 0., R_proj_max, args=(thisb,))[0])
         
         # multiply by h^2 to make it dimensionless
-        y2D = cyc_integral(thetas*const.arcminute) * self.cosmo.h**2
+        y2D = cyc_integral(R_proj) 
         
         return y2D
     #-------------------------------------------------------------------------------
-    def optical_depth(self, thetas):    
+    def optical_depth(self, R_proj):    
         """
-        Compute the 2D Thomson optical depth profile [units: None] as a function of 
-        angle `\theta`, which is the angular distance from the halo center 
-        in the plane of the sky, by integrating over the line-of-sight through
-        the halo.
+        Compute the Thomson optical depth profile [units: None] as a function 
+        of the projected distance in the plane of the sky, also known as the 
+        impact parameter.
         
         Notes
         -----
         The Thomson optical depth profile is given by: 
         
-        ..math: \tau(\theta) = \sigma_T \int_0^\infty n_e(\sqrt(l^2 + D_A^2 \theta^2)) dl
+        ..math: \tau(R_proj) = \sigma_T \int_0^\infty n_e(\sqrt(l^2 + R_proj^2)) dl
 
         Parameters
         ----------
-        thetas : {float, array_like}
-            The 2D angular distance from the halo center [units: arcminutes]
+        R_proj : {float, array_like}
+            The projected distance from the halo center [units: Mpc]
         
         Returns
         -------
         tau : {float, array_like}
             The 2D optical depth profile [units: None]
         """ 
-        this_Da = self.Da
+        # really should be infinity, but this works well enough
+        R_proj_max = 5.*self.virial_radius
         
         # define the optical depth function, has units of h^2 / Mpc
         prefactor = const.sigma_T*0.5*(1 + self.X)/const.m_p * (const.M_sun/const.Mpc**2)
         tau3D = lambda r: prefactor * self.gas_density(r)
         
         # set up the cylindrical integral for each theta value
-        integrand = lambda l, th: 2.*tau3D(np.sqrt(l**2 + (this_Da*th)**2))
-        cyc_integral = np.vectorize(lambda this_theta: integ.quad(integrand, 0., \
-                                        5.*self.virial_radius, args=(this_theta,))[0])
+        integrand = lambda l, b: 2.*tau3D(np.sqrt(l**2 + b**2))
+        cyc_integral = np.vectorize(lambda thisb: integ.quad(integrand, 0., R_proj_max, args=(thisb,))[0])
         
         # multiply by h^2 so it's dimensionless
-        tau = cyc_integral(thetas*const.arcminute) * self.cosmo.h**2
+        tau = cyc_integral(R_proj) * self.cosmo.h**2
         
         return tau
     #---------------------------------------------------------------------------
@@ -742,7 +740,7 @@ class HaloProfile(object):
             The temperature change due to the thermal SZ effect [units :math: `\mu K`]
         """
         freq_factor = tools.f_sz(freq)
-        dT = freq_factor * self.comptonY_2D(thetas) * (const.T_cmb / const.micro)
+        dT = freq_factor * self.comptonY_2D(thetas*const.arcminute*self.Da) * (const.T_cmb / const.micro)
         
         return dT
     #---------------------------------------------------------------------------
@@ -771,7 +769,7 @@ class HaloProfile(object):
             The temperature change due to the kinetic SZ effect [units :math: `\mu K`]
         """
         v_c = (velocity*const.km/const.second) / const.c_light 
-        dT = -self.optical_depth(thetas) * v_c * (const.T_cmb / const.micro) 
+        dT = -self.optical_depth(thetas*const.arcminute*self.Da) * v_c * (const.T_cmb / const.micro) 
         
         return dT
     #---------------------------------------------------------------------------
@@ -798,8 +796,8 @@ class HaloProfile(object):
         max_theta = 60.
         dtheta = 0.05
 
-        thetas = np.arange(min_theta, max_theta, dtheta)
-        tau = self.optical_depth(thetas) 
+        thetas = np.arange(min_theta, max_theta, dtheta) 
+        tau = self.optical_depth(thetas * self.Da * const.arcminute) 
         tau0 = self.optical_depth(0.)
         
         return self._fourier_transform(ell, thetas, tau, tau0)
@@ -826,8 +824,8 @@ class HaloProfile(object):
         max_theta = 60.
         dtheta = 0.05
 
-        thetas = np.arange(min_theta, max_theta, dtheta)
-        y = self.comptonY_2D(thetas) 
+        thetas = np.arange(min_theta, max_theta, dtheta) 
+        y = self.comptonY_2D(thetas * self.Da * const.arcminute) 
         y0 = self.comptonY_2D(0.)
         
         return self._fourier_transform(ell, thetas, y, y0)
