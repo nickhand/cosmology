@@ -96,7 +96,8 @@ def check_requirements():
 
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
-
+    
+    os.environ['CC'] = 'gcc'
     check_requirements()
 
     write_version_py()
