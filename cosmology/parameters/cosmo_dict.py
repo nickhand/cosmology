@@ -96,6 +96,16 @@ class Cosmology(object):
     #end __init__
     
     #---------------------------------------------------------------------------
+    def __getitem__(self, key):
+        """
+        Make the cosmology class have dict-like attribute access too
+        """
+        try:
+            return self.__dict__[key]
+        except:
+            raise AttributeError("No such attribute '%s'" %key)
+        
+    #---------------------------------------------------------------------------
     def __str__(self):
         """
         Return a dump of the parameters as the string representation 
