@@ -35,8 +35,9 @@ def h_conversion_factor(variable_type, input_units, output_units, h):
         The dimensionless Hubble factor to use to convert
     """
     units_types = ['relative', 'absolute']
-    if not all(t in units_types for t in [input_units, output_units]):
-        raise ValueError("`input_units` and `output_units` must be one of %s" %units_types)
+    units_list = [input_units, output_units]
+    if not all(t in units_types for t in units_list):
+        raise ValueError("`input_units` and `output_units` must be one of %s, not %s" %(units_types, units_list))
         
     if variable_type not in variables.keys():
         raise ValueError("`variable_type` must be one of %s" %variables.keys())
@@ -47,6 +48,7 @@ def h_conversion_factor(variable_type, input_units, output_units, h):
     exponent = variables[variable_type]['power']
     if input_units == "absolute":
         return variables[variable_type]['operator'](1., h)**(exponent)
+        
     else:
         return 1./(variables[variable_type]['operator'](1., h)**(exponent))
         
