@@ -1,7 +1,7 @@
 import os
 from . import parameters
 from ..utils import constants as c
-
+import copy
 
 #-------------------------------------------------------------------------------
 class Cosmology(object):
@@ -79,6 +79,9 @@ class Cosmology(object):
         if len(args) > 2:
             raise TypeError("Expected at most 1 positional argument, got 2")
         
+        # explicitly copy the input args
+        args = copy.deepcopy(args)
+            
         # set the default cosmology parameter
         try:
             self.default = args[0].pop('default')
