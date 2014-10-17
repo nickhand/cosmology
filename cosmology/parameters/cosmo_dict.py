@@ -29,7 +29,7 @@ class Cosmology(object):
     _cp = ['sigma_8', 'n', 'w', 'cs2_lam', 'Tcmb', 'Y_he', 'N_nu', 'N_nu_massive', 
             'z_reion', 'tau', 'delta_c', 'h', 'H0', 'omegan', 'omegam', 'omegal',
             'omegab', 'omegac', 'omegab_h2', 'omegac_h2', 'omegan_h2', 'z_star',
-            'age', 'flat', 'default']
+            'age', 'flat', 'default', 'omegar']
             
     def __init__(self, *args, **kwargs):
         """
@@ -207,6 +207,7 @@ class Cosmology(object):
         if not hasattr(self, "h") and self.default is not None:
             self.H0 = self.__base["H0"]
             self.h = self.H0 / 100.
+        
         #-----------------------------------------------------------------------
         # set massive neutrinos contribution
         #-----------------------------------------------------------------------
@@ -228,20 +229,22 @@ class Cosmology(object):
             
         ### now the do the omega parameters
         #-----------------------------------------------------------------------
-        
         # first compute default omega radiation, assuming N_eff massless neutrinos
-        try:
-            # Compute photon density from Tcmb
-            constant = c.a_rad/c.c_light**2
-            rho_crit = self.crit_dens * self.h**2 * (c.M_sun/c.Mpc**3) # now in g/cm^3
-            omega_gam =  constant*self.Tcmb**4 / rho_crit
+        if "omegar" in input_params:
+            self.omegar = input_params.pop("omegar")
+        else:
+            try:
+                # Compute photon density from Tcmb
+                constant = c.a_rad/c.c_light**2
+                rho_crit = self.crit_dens * self.h**2 * (c.M_sun/c.Mpc**3) # now in g/cm^3
+                omega_gam =  constant*self.Tcmb**4 / rho_crit
 
-            # compute neutrino omega, assuming N_nu massless neutrinos + omegan from massive neutrinos
-            omega_nu = 7./8.*(4./11)**(4./3)*self.N_nu*omega_gam + self.omegan
+                # compute neutrino omega, assuming N_nu massless neutrinos + omegan from massive neutrinos
+                omega_nu = 7./8.*(4./11)**(4./3)*self.N_nu*omega_gam + self.omegan
         
-            self.omegar = omega_gam + omega_nu
-        except:
-            self.omegar = 0.
+                self.omegar = omega_gam + omega_nu
+            except:
+                self.omegar = 0.
                 
         if "omegal" in input_params:
             self.omegal = input_params.pop("omegal")

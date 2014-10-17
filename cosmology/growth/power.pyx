@@ -32,6 +32,8 @@ class Power(object):
             self.cosmo = cosmo
         else:
             self.cosmo = Cosmology(**cosmo)
+        
+
         self._camb_options = {'initial_condition' : initial_condition,
                               'l_accuracy_boost' : l_accuracy_boost,
                               'accuracy_boost' : accuracy_boost,

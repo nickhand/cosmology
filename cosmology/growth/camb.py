@@ -64,6 +64,9 @@ def camb_transfer(*args, **kwargs):
         # call camb
         ans = subprocess.call(['%s/camb' %os.environ['CAMB_DIR'], param_file_name], stdout=open(os.devnull, 'w'))
         
+        if ans > 0 or not os.path.exists('./test_transfer_out.dat'):
+            raise ValueError("Sorry, CAMB call did not succeed")
+        
         # get the transfer data
         data = np.loadtxt('./test_transfer_out.dat')
         k, T = data[:,0], data[:,6]
