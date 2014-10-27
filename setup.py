@@ -115,6 +115,6 @@ if __name__ == "__main__":
         packages=setuptools.find_packages(),
         include_package_data=True,
         zip_safe=False, # the package can run out of an .egg file
-
+        scripts=['cosmology/scripts/' + script for script in os.listdir('cosmology/scripts')],
         cmdclass={'build_py': build_py},
     )
