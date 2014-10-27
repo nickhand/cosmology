@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+"""
+ computeLensingPower
+ compute a lensing power spectrum
+ 
+ author: Nick Hand
+ contact: nhand@berkeley.edu
+ creation date: 10/25/2014
+"""
+from cosmology.growth import LensingPower
+from cosmology.parameters import Cosmology, default_params
+
+import numpy as np
+from flipper import flipperDict
+import argparse
+
+#-------------------------------------------------------------------------------
+def main(args):
+    """
+    Compute a lensing power spectrum
+    """
+    # read in the parameters
+    params = flipperDict.flipperDict()
+    params.readFromFile(args.param_file)
+    
+    # initialize the cosmology
+    cosmo = Cosmology(params.get('cosmo', default_params))
+    
+    nz1 = params['nz1']
+    if isinstance(nz1, dict):
+       nz1 = lambda z: params['nz1']['function'](z, *params['nz1']['args'])
+       
+    nz2 = params['nz2']
+    if isinstance(nz2, dict):
+        nz2 = lambda z: params['nz2']['function'](z, *params['nz2']['args'])
+        
+    # initialize the class
+    kwargs = {k : params[k] for k in ['zlim', 'transfer_fit', 'linear', 'camb_kwargs'] if k in params.keys()}
+    lensing_power = LensingPower(nz1, nz2=nz2, cosmo=cosmo, **kwargs)
+                                 
+    Pell = lensing_power.evaluate(params['ell'])
+    np.savetxt(params['output_file'], zip(params['ell'], Pell))
+    
+#end main
+
+#-------------------------------------------------------------------------------
+if __name__ == '__main__':
+    
+    # parse the input arguments
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument('param_file', type=str, help="") 
+    args = parser.parse_args()
+    
+    main(args)
+
