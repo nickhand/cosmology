@@ -119,7 +119,8 @@ class LensingPower(object):
             z         = np.ascontiguousarray(self._z_kern, dtype=np.double)
             Dm_spline = np.ascontiguousarray(Dm_z, dtype=np.double)
             nz_spline = np.ascontiguousarray(nz(self._z_kern), dtype=np.double)
-            
+    
+            # the magic
             lens_kern_integral(<double *>z.data, N, <double *>z.data, 
                                <double *>nz_spline.data, <double *>Dm_spline.data,
                                N, self.zmax, <double *>kern.data)

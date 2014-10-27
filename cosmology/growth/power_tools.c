@@ -587,8 +587,12 @@ void lens_kern_integral(double *z, int numz, double *z_spline, double *nz,
         params.x = z[i];
         F.params = &params;
         
-        gsl_integration_cquad(&F, log(z[i]), log(zmax), 0., 1e-4, work, &result, &error, NULL);
-        output[i] = result;
+        if (z[i] >= zmax) {
+            output[i] = 0.;
+        } else {
+            gsl_integration_cquad(&F, log(z[i]), log(zmax), 0., 1e-4, work, &result, &error, NULL);        
+            output[i] = result;
+        }
     }
     
     // free the integration workspace
