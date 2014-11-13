@@ -159,6 +159,7 @@ def get_cosmology_from_string(arg):
 #-------------------------------------------------------------------------------
 available = [ 'Planck1', 
               'Planck1_lens_WP_highL', 
+              'Planck1_WP',
               'Planck1_WP_highL_BAO', 
               'WMAP9_eCMB', 
               'WMAP7', 
