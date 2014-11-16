@@ -3,7 +3,7 @@
 #cython: nonecheck=False
 
 from ..parameters import Cosmology, default_params
-from . import camb
+from . import camb, emulator
 from ..utils import functionator, tools
 import os
 
@@ -16,8 +16,9 @@ class Power(object):
     various transfer functions
     """
     fits = ["EH", "EH_no_wiggles", "EH_no_baryons", "BBKS", "Bond_Efs", "CAMB"]
+    nonlinear_fits = ['emulator', 'halofit']
     
-    def __init__(self, k=np.logspace(-3, 0, 200), 
+    def __init__(self, k=np.logspace(np.log10(2e-3), 0, 200), 
                        z=0., 
                        transfer_fit='CAMB', 
                        cosmo={'default': default_params, 'flat': True},
@@ -25,7 +26,8 @@ class Power(object):
                        l_accuracy_boost=1, 
                        accuracy_boost=1,
                        transfer_k_per_logint=11, 
-                       transfer_kmax=200.):
+                       transfer_kmax=200.,
+                       nonlinear_fit='emulator'):
                  
         # Set up a simple dictionary of cosmo params which can be later updated
         if isinstance(cosmo, Cosmology):
@@ -40,9 +42,10 @@ class Power(object):
                               'transfer_k_per_logint' : transfer_k_per_logint,
                               'transfer_kmax' : transfer_kmax}
         
-        self.k = k
-        self.z = z
-        self.transfer_fit = transfer_fit
+        self.k             = k
+        self.z             = z
+        self.transfer_fit  = transfer_fit
+        self.nonlinear_fit = nonlinear_fit
          
     #end __init__
     
@@ -136,6 +139,19 @@ class Power(object):
         set_parameters(self.cosmo.omegam, self.cosmo.omegab, self.cosmo.omegal, 
                         self.cosmo.omegar, self.cosmo.sigma_8, self.cosmo.h, 
                         self.cosmo.n, self.cosmo.Tcmb, self.cosmo.w, transfer_int)
+    #---------------------------------------------------------------------------
+    @property
+    def nonlinear_fit(self):
+        return self.__nonlinear_fit
+        
+    @nonlinear_fit.setter
+    def nonlinear_fit(self, val):
+        if val not in Power.nonlinear_fits:
+            raise ValueError("Nonlinear power fit must be one of %s" %Power.nonlinear_fits)
+        
+        del self.nonlinear_power
+        self.__nonlinear_fit = val
+
     #---------------------------------------------------------------------------
     @property
     def transfer_fit(self):
@@ -453,17 +469,25 @@ class Power(object):
         try:
             return self.__nonlinear_power
         except:            
-            # set up C arrays to pass
-            output = np.ascontiguousarray(np.empty(len(self.k)), dtype=np.double)
-            k = np.ascontiguousarray(self.k, dtype=np.double)
-            delta_k = np.ascontiguousarray(self.delta_k, dtype=np.double)
+            if self.nonlinear_fit == 'halofit':
+                
+                # set up C arrays to pass
+                output = np.ascontiguousarray(np.empty(len(self.k)), dtype=np.double)
+                k = np.ascontiguousarray(self.k, dtype=np.double)
+                delta_k = np.ascontiguousarray(self.delta_k, dtype=np.double)
             
-            # reset transfer to be sure
-            transfer_type = self.transfer_fit
-            self.transfer_fit = transfer_type
+                # reset transfer to be sure
+                transfer_type = self.transfer_fit
+                self.transfer_fit = transfer_type
             
-            nonlinear_power(<double *>k.data, self.z, len(self.k), <double *>output.data)
-            self.__nonlinear_power = output
+                nonlinear_power(<double *>k.data, self.z, len(self.k), <double *>output.data)
+                self.__nonlinear_power = output
+            
+            elif self.nonlinear_fit == 'emulator':
+                
+                # step1: call the emulator wrapper, step2: profit
+                k_nl, self.__nonlinear_power = emulator.nonlinear_power(self.z, k=self.k, use_cmbh=False, params=self.cosmo)
+                
             return self.__nonlinear_power
 
     
@@ -547,7 +571,139 @@ class Power(object):
         dlnsdlnm = 3./(2*sigma0**2*np.pi**2*r**4)*integral*self.power_norm
 
         return dlnsdlnm
+#endclass Power
+#-------------------------------------------------------------------------------
+
+class GalaxyPower(object):
+    """
+    A class to compute galaxy nonlinear matter power spectrum, using the 
+    Coyote emulator for range of HOD parameters, using the HOD model 
+    from White et al. 2011.
+    
+    The cosmology is fixed to a WMAP7-like cosmology
+    """
+    def __init__(self, k=np.logspace(-2, 0, 200), z=0., **hod_params):
+                 
+        # set the cosmology
+        cosmo_dict = {'default' : 'WMAP7', 'omegab' : 0.0448, 'omegac' : 0.2648-0.0448, \
+                      'n' : 0.963, 'sigma_8' : 0.8, 'h' : 0.71}
+        self._cosmo = Cosmology(cosmo_dict)
+        
+        self._k = k
+        self._z = z
+        
+        # set the HOD
+        self._hod_params = {}
+        self._hod_params.setdefault('M1', 14.06)
+        self._hod_params.setdefault('alpha', 0.90)
+        self._hod_params.setdefault('Mcut', 13.08)
+        self._hod_params.setdefault('sigma', 0.98)
+        self._hod_params.setdefault('kappa', 1.13)
+        self._hod_params.update(hod_params)
+
+    #end __init__
+    
+    #---------------------------------------------------------------------------
+    # SET PROPERTIES
+    #---------------------------------------------------------------------------
+    @property
+    def k(self):
+        return self._k
+
+    @k.setter
+    def k(self, val):
+        self._k = val
+    
+    #---------------------------------------------------------------------------
+    @property
+    def z(self):
+        return self._z
+
+    @z.setter
+    def z(self, val):
+        self._z = val
+        
+    #---------------------------------------------------------------------------
+    @property
+    def cosmo(self):
+        return self._cosmo
+        
+    #---------------------------------------------------------------------------
+    # HOD Params
+    #---------------------------------------------------------------------------
+    @property
+    def M1(self):
+        """
+        Mass of a halo which on average contains 1 satellite
+        """
+        return self._hod_params['M1']
+    
+    @M1.setter
+    def M1(self, val):
+        self._hod_params['M1'] = val
+        
+    #---------------------------------------------------------------------------
+    @property
+    def Mcut(self):
+        """
+        Minimum mass of halo containing satellites
+        """
+        return self._hod_params['Mcut']
+
+    @Mcut.setter
+    def Mcut(self, val):
+        self._hod_params['Mcut'] = val
+        
+    #---------------------------------------------------------------------------
+    @property
+    def alpha(self):
+        """
+        Index of power law for satellite galaxies
+        """
+        return self._hod_params['alpha']
+
+    @alpha.setter
+    def alpha(self, val):
+        self._hod_params['alpha'] = val        
+        
+    #---------------------------------------------------------------------------
+    @property
+    def sigma(self):
+        """
+        Width of smoothed cutoff
+        """
+        return self._hod_params['sigma']
+
+    @sigma.setter
+    def sigma(self, val):
+        self._hod_params['sigma'] = val        
+        
+    #---------------------------------------------------------------------------
+    @property
+    def kappa(self):
+        """
+        The factor multiplying the cutoff mass
+        """
+        return self._hod_params['kappa']
+
+    @kappa.setter
+    def kappa(self, val):
+        self._hod_params['kappa'] = val        
+        
+    #---------------------------------------------------------------------------
+    @property
+    def nonlinear_power(self):
+        """
+        Non-linear galaxy power [units :math:`Mpc^3/h^3`]
+        """
+        # step1: call the emulator wrapper, step2: profit
+        k_nl, P_nl = emulator.galaxy_nonlinear_power(self.z, k=self.k, **self._hod_params)
+        return P_nl
+            
 #-------------------------------------------------------------------------------
     
+    
+    
+
     
     

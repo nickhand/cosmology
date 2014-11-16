@@ -3,6 +3,7 @@ from .hmf import HaloMassFunction
 import bias
 from .velocity import *
 from .profile import HaloProfile
+import hod
 
 __all__ = ['virial_overdensity',
            'concentration', 
@@ -20,4 +21,5 @@ __all__ = ['virial_overdensity',
            'sigma_evrard',
            'pairwise_velocity',
            'HaloProfile',
-           'linear_vel_dispersion']
+           'linear_vel_dispersion', 
+           'hod']

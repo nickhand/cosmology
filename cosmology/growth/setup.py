@@ -17,6 +17,7 @@ def configuration(parent_package='', top_path=None):
     cython(['power.pyx'], working_path=base_path)
     cython(['correlation.pyx'], working_path=base_path)
     cython(['lensing.pyx'], working_path=base_path)
+    cython(['emulator.pyx'], working_path=base_path)
 
     config.add_extension('core', sources=['core.c', 'transfer.c', 'power_tools.c'],
                          include_dirs=[get_numpy_include_dirs(), get_cython_include_dir(), ''],
@@ -41,6 +42,15 @@ def configuration(parent_package='', top_path=None):
                          libraries=get_libraries(), library_dirs=[get_library_dir()],
                          extra_compile_args=['-O3', '-w'],
                          extra_link_args=['-g'])
+    
+    
+    sources = ['emulator.c', 'emulator/core.c', 'emulator/emu.c', 'emulator/emu_noh.c', \
+                'emulator/hubble.c', 'hod_emulator/core.c', 'hod_emulator/emu.c']
+    config.add_extension('emulator', sources=sources ,
+                          include_dirs=[get_numpy_include_dirs(), get_cython_include_dir(), '', 'emulator', 'hod_emulator'],
+                          libraries=get_libraries(), library_dirs=[get_library_dir(), 'emulator', 'hod_emulator'],
+                          extra_compile_args=['-O3', '-w'],
+                          extra_link_args=['-g'])
 
     return config
 
